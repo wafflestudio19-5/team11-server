@@ -1,3 +1,7 @@
+# deploy only
+team11/team11/settings_server.py
+deploy.sh
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
