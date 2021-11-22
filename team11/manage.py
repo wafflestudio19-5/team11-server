@@ -6,12 +6,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    if "TEAM11_SERVER_ENV" in os.environ: 
-        print("manage.py : use setting_server")
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'team11.settings_server')
-    else: 
-        print("manage.py : use setting (default)")
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'team11.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'team11.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

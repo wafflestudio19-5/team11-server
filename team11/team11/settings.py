@@ -13,6 +13,22 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 
+import json
+from django.core.exceptions import ImproperlyConfigured
+
+# local과 server의 설정 변수 분리
+with open('secret.json', 'r') as f:
+    secret = json.loads(f.read())
+
+def get_secret(setting, secrets=secret):
+    try:
+        return secrets[setting]
+    except KeyError:
+        error_msg = "Set the {0} environment variable".format(setting)
+        raise ImproperlyConfigured(error_msg)
+
+SECRET_KEY = get_secret("SECRET_KEY")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,14 +37,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ax5v)%q)d*bl*78y6qw@9pn(=@5r83s5)+%3ufi4%eqf8og^cm'
+if "TEAM11_SERVER_ENV" in os.environ: 
+    get_secret("SECRET_KEY")
+    DEBUG = False
+    ALLOWED_HOSTS = ['127.0.0.1',]
+else: 
+    SECRET_KEY = 'django-insecure-ax5v)%q)d*bl*78y6qw@9pn(=@5r83s5)+%3ufi4%eqf8og^cm'
+    DEBUG = True
+    ALLOWED_HOSTS = []
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 DEBUG_TOOLBAR = os.getenv('DEBUG_TOOLBAR') in ('true', 'True')
-
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -77,16 +97,19 @@ WSGI_APPLICATION = 'team11.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': '127.0.0.1',
-        'PORT': 3306,
-        'NAME': 'team11_db',
-        'USER': 'team11_db_user',
-        'PASSWORD': 'secretkey1234',
+if "TEAM11_SERVER_ENV" in os.environ: 
+    get_secret("DATABASES")
+else: 
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': '127.0.0.1',
+            'PORT': 3306,
+            'NAME': 'team11_db',
+            'USER': 'team11_db_user',
+            'PASSWORD': 'secretkey1234',
+        }
     }
-}
 
 
 # Password validation
