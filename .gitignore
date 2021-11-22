@@ -1,6 +1,7 @@
 # deploy only
-team11/team11/settings_server.py
 deploy.sh
+team11/team11/secret.json
+team11/team11/settings_server.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

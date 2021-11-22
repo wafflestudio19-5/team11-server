@@ -17,7 +17,7 @@ import json
 from django.core.exceptions import ImproperlyConfigured
 
 # local과 server의 설정 변수 분리
-with open('secret.json', 'r') as f:
+with open('team11/secret.json', 'r') as f:
     secret = json.loads(f.read())
 
 def get_secret(setting, secrets=secret):
@@ -38,10 +38,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 if "TEAM11_SERVER_ENV" in os.environ: 
+    print("env : server")
     get_secret("SECRET_KEY")
     DEBUG = False
     ALLOWED_HOSTS = ['127.0.0.1',]
 else: 
+    print("env : local")
     SECRET_KEY = 'django-insecure-ax5v)%q)d*bl*78y6qw@9pn(=@5r83s5)+%3ufi4%eqf8og^cm'
     DEBUG = True
     ALLOWED_HOSTS = []
