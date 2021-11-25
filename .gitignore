@@ -1,3 +1,11 @@
+# deploy only
+deploy.sh
+team11/team11/secret.json
+team11/team11/settings_server.py
+
+# custom
+.vscode/settings.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
