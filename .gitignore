@@ -1,5 +1,4 @@
 # deploy only
-deploy.sh
 everytime/everytime/secret.json
 everytime/everytime/settings_server.py
 
