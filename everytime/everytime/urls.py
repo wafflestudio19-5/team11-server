@@ -1,4 +1,4 @@
-"""everytime URL Configuration
+"""team11 URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.2/topics/http/urls/
@@ -21,7 +21,11 @@ from . import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('user.urls')),
+    path('api/v1/', include('emailcode.urls')),
+    path('api/v1/', include('university.urls')),
+    path('api/v1/', include('department.urls'))
 ]
+
 urlpatterns +=[path('api-auth/', include('rest_framework.urls')), ]
 
 if settings.DEBUG_TOOLBAR:

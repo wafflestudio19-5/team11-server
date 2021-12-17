@@ -62,9 +62,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'emailcode.apps.EmailCodeConfig',
+    'university.apps.UniversityConfig',
+    'department.apps.DepartmentConfig',
+
     'django.contrib.sites',
     'rest_framework',
 ]
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "waffle.team11@gmail.com"
+EMAIL_HOST_PASSWORD = "showmethemoney"
+DEFAULT_FROM_MAIL = "waffle.team11"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -76,7 +88,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'everytime.urls'
+ROOT_URLCONF = 'team11.urls'
 
 TEMPLATES = [
     {
@@ -94,7 +106,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'everytime.wsgi.application'
+WSGI_APPLICATION = 'team11.wsgi.application'
 
 
 # Database
