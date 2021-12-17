@@ -19,7 +19,6 @@ from django.core.exceptions import ImproperlyConfigured
 # local과 server의 설정 변수 분리
 with open('team11/secret.json', 'r') as f:
     secret = json.loads(f.read())
-
 def get_secret(setting, secrets=secret):
     try:
         return secrets[setting]
@@ -62,9 +61,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'emailcode.apps.EmailCodeConfig',
+    'university.apps.UniversityConfig',
+    'department.apps.DepartmentConfig',
+
     'django.contrib.sites',
     'rest_framework',
 ]
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "waffle.team11@gmail.com"
+EMAIL_HOST_PASSWORD = "showmethemoney"
+DEFAULT_FROM_MAIL = "waffle.team11"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
