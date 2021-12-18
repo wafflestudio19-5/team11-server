@@ -16,13 +16,13 @@ class SetCodeToThisEmail(APIView):
         if 'email' not in request.data:
             return Response({'email': 'email field is required'}, status=status.HTTP_404_NOT_FOUND)
         #이메일 앞뒤의 공백 제거
-        request.data['email'] = request.data['email'].strip()
+        email = request.data['email'].strip()
         #이메일에 랜덤한 수 할당
-        if EmailCode.objects.filter(email=request.data['email']).exists():
-            emailCode = EmailCode.objects.get(email=request.data['email'])
+        if EmailCode.objects.filter(email=email).exists():
+            emailCode = EmailCode.objects.get(email=email)
             emailCode.code = random.randint(1000, 9999)
         else:
-            emailCode = EmailCode(email=request.data['email'], code=random.randint(1000, 9999))
+            emailCode = EmailCode(email=email, code=random.randint(1000, 9999))
         #메일 전송 및 에러 처리
         mail = EmailMessage("4자리 코드가 발급되었습니다", str(emailCode.code), to=[request.data['email']])
         try:
@@ -39,7 +39,8 @@ class SetCodeToThisEmail(APIView):
 
 class CompareCode(APIView):
     def get(self, request, *args, **kwargs):
-        if EmailCode.objects.filter(email=request.data['email'], code=request.data['code']).exists():
+        email = request.data['email'].strip()
+        if EmailCode.objects.filter(email=email, code=request.data['code']).exists():
             return Response({'Result': 'Correct Code'}, status=status.HTTP_200_OK)
         else:
             return Response({'Result': 'Incorrect Code'}, status=status.HTTP_404_NOT_FOUND)
