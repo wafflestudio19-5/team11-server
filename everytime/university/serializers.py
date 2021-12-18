@@ -29,7 +29,7 @@ class UniversityViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = University
-        fields = ('id', 'name', 'email_domain', 'departments')
+        fields = ('id', 'name')
 
     def get_departments(self, instance):
         return DepartmentNameSerializer(instance.university_departments.filter(), many=True).data

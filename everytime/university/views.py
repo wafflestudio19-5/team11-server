@@ -11,15 +11,14 @@ class UniversityList(APIView):
     def get(self, request):
         serializer = UniversityViewSerializer
         return Response(serializer(University.objects.all(), many=True).data, status=status.HTTP_200_OK)
-
-
-class AddUniversity(APIView):
-    permission_classes = (permissions.AllowAny, )
+        
     def post(self, request):
+        if request.user.is_anonymous:
+            return Response({"error" : "forbidden", "detail" : "관리자만 사용가능합니다."}, status=status.HTTP_403_FORBIDDEN)
         serializer = UniversitySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        university = serializer.save()
-        return Response({"status": "successfully uploaded"}, status=status.HTTP_201_CREATED)
+        serializer.save()
+        return Response({"success" : "True"}, status=status.HTTP_201_CREATED)
 
 class UniversityViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
