@@ -41,7 +41,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 if "TEAM11_SERVER_ENV" in os.environ :
     print("env : server")
-    get_secret("SECRET_KEY")
+    SECRET_KEY = get_secret("SECRET_KEY")
     DEBUG = False
     ALLOWED_HOSTS = ['127.0.0.1',]
 else: 
