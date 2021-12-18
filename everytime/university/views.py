@@ -14,7 +14,8 @@ class UniversityList(APIView):
         
     def post(self, request):
         if request.user.is_anonymous:
-            return Response({"error" : "forbidden", "detail" : "관리자만 사용가능합니다."}, status=status.HTTP_403_FORBIDDEN)
+            pass # test용으로 임시 설정
+            #return Response({"error" : "forbidden", "detail" : "관리자만 사용가능합니다."}, status=status.HTTP_403_FORBIDDEN)
         serializer = UniversitySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
