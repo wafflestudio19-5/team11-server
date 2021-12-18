@@ -17,27 +17,29 @@ import json
 from django.core.exceptions import ImproperlyConfigured
 
 # local과 server의 설정 변수 분리
-with open('everytime/secret.json', 'r') as f:
-    secret = json.loads(f.read())
+try :
+    with open('everytime/secret.json', 'r') as f:
+        secrets = json.loads(f.read())
+except :
+    secrets = ""
 
-def get_secret(setting, secrets=secret):
+def get_secret(setting, secrets=secrets):
     try:
         return secrets[setting]
     except KeyError:
         error_msg = "Set the {0} environment variable".format(setting)
         raise ImproperlyConfigured(error_msg)
-
-SECRET_KEY = get_secret("SECRET_KEY")
+    except TypeError:
+        print("everytime/secret.json does not exist")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-if "TEAM11_SERVER_ENV" in os.environ: 
+if "TEAM11_SERVER_ENV" in os.environ :
     print("env : server")
     get_secret("SECRET_KEY")
     DEBUG = False
