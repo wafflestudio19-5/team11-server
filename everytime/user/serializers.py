@@ -18,12 +18,13 @@ def jwt_token_of(user):
 
 class UserCreateSerializer(serializers.Serializer):
 
-    id = serializers.CharField(required = True)
+    user_id = serializers.CharField(required = True)
     name = serializers.CharField(required = True)
     email = serializers.EmailField(required=True)
     nickname = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
     university = serializers.CharField(required = True)
+    admission_year = serializers.IntegerField(required = True)
 
     def validate(self, data):
         university_name = data.get('university')
@@ -34,23 +35,24 @@ class UserCreateSerializer(serializers.Serializer):
         return data
 
     def create(self, validated_data):
+        admission_year = validated_data.pop('admission_year')
         email = validated_data.pop('email')
         nickname = validated_data.pop('nickname')
         password = validated_data.pop('password')
-        user_id = validated_data.pop('id')
+        user_id = validated_data.pop('user_id')
         university_name = validated_data.pop('university')
         university = University.objects.get(name = university_name)
-        user = User.objects.create_user(user_id = user_id, nickname = nickname, email = email, password = password, university = university)
+        user = User.objects.create_user(user_id = user_id, nickname = nickname, email = email, password = password, university = university, admission_year = admission_year)
         return user, jwt_token_of(user)
 
 class UserLoginSerializer(serializers.Serializer):
     
-    id = serializers.CharField(max_length=64, required=True)
+    user_id = serializers.CharField(max_length=64, required=True)
     password = serializers.CharField(max_length=128, write_only=True)
     token = serializers.CharField(max_length=255, read_only=True)
 
     def validate(self, data):
-        user_id = data.get('id', None)
+        user_id = data.get('user_id', None)
         password = data.get('password', None)
         user = authenticate(user_id=user_id, password=password)
 
@@ -59,6 +61,6 @@ class UserLoginSerializer(serializers.Serializer):
 
         update_last_login(None, user)
         return {
-            'id': user.user_id,
+            'user_id': user.user_id,
             'token': jwt_token_of(user)
         }

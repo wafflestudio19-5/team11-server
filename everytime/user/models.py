@@ -49,9 +49,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     university = models.ForeignKey(University, on_delete=models.CASCADE)
 
-    nickname = models.CharField(max_length=30, blank=False)
+    nickname = models.CharField(max_length=30, blank=False, unique = True)
     user_id = models.CharField(max_length=30, blank=False, db_index=True, unique=True)
     email = models.EmailField(max_length=100, unique=True)
+    admission_year = models.IntegerField(max_length=10)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(default=timezone.now)
