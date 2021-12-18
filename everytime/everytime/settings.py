@@ -115,7 +115,7 @@ WSGI_APPLICATION = 'everytime.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 if "TEAM11_SERVER_ENV" in os.environ: 
-    get_secret("DATABASES")
+    DATABASES = get_secret("DATABASES")
 else: 
     DATABASES = {
         'default': {
