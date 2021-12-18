@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'emailcode.apps.EmailCodeConfig',
     'university.apps.UniversityConfig',
     'department.apps.DepartmentConfig',
+    'user.apps.UserConfig',
 
     'django.contrib.sites',
     'rest_framework',
@@ -88,7 +89,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'team11.urls'
+ROOT_URLCONF = 'everytime.urls'
 
 TEMPLATES = [
     {
@@ -106,7 +107,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'team11.wsgi.application'
+WSGI_APPLICATION = 'everytime.wsgi.application'
 
 
 # Database
@@ -168,3 +169,4 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'user.User'
