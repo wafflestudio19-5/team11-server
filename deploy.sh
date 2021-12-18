@@ -3,7 +3,7 @@ cd ~/team11-server
 source venv/bin/activate
 export TEAM11_SERVER_ENV=1
 if [ -z "$1" ] && [ "$1" = '--new' ] ; then
-    git pull origin master
+    #git pull origin master
     cat requirements.txt | xargs -n 1 pip3 install
 fi
 

@@ -25,13 +25,7 @@ class UniversitySerializer(serializers.ModelSerializer):
 
 class UniversityViewSerializer(serializers.ModelSerializer):
 
-    departments = serializers.SerializerMethodField()
-
     class Meta:
         model = University
         fields = ('id', 'name')
-
-    def get_departments(self, instance):
-        return DepartmentNameSerializer(instance.university_departments.filter(), many=True).data
-
 
