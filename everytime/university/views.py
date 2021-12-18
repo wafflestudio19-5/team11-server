@@ -11,14 +11,11 @@ class UniversityList(APIView):
     def get(self, request):
         serializer = UniversityViewSerializer
         return Response(serializer(University.objects.all(), many=True).data, status=status.HTTP_200_OK)
-
-
-class AddUniversity(APIView):
-    permission_classes = (permissions.AllowAny, )
+        
     def post(self, request):
         serializer = UniversitySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        university = serializer.save()
+        serializer.save()
         return Response({"status": "successfully uploaded"}, status=status.HTTP_201_CREATED)
 
 class UniversityViewSet(viewsets.GenericViewSet):
