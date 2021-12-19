@@ -23,7 +23,9 @@ urlpatterns = [
     path('api/v1/', include('user.urls')),
     path('api/v1/', include('emailcode.urls')),
     path('api/v1/', include('university.urls')),
-    path('api/v1/', include('department.urls'))
+    path('api/v1/', include('department.urls')),
+    path('api/v1/', include('board.urls')),
+    path('', include('post.urls'))
 ]
 
 urlpatterns +=[path('api-auth/', include('rest_framework.urls')), ]
