@@ -26,7 +26,7 @@ class WritePost(APIView):
         serializer = PostCreateSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         post = serializer.save()
-        return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
+        return Response(PostSerializer(post, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
     def put(self, request):
         id = request.data['id']
@@ -42,7 +42,7 @@ class WritePost(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.update(post, serializer.validated_data)
 
-        return Response(PostSerializer(post).data, status=status.HTTP_200_OK)
+        return Response(PostSerializer(post, context={'request': request}).data, status=status.HTTP_200_OK)
 
     def delete(self, request):
         id = request.data['id']
@@ -66,7 +66,7 @@ class GetPost(APIView):
         id = request.data['id']
         post = Post.objects.get(id=id)
 
-        return Response(PostSerializer(post).data, status=status.HTTP_200_OK)
+        return Response(PostSerializer(post, context={'request': request}).data, status=status.HTTP_200_OK)
 
 class SearchPostTitle(APIView):
     # 유저가 속한 대학에서 제목이 일치하는 post를 검색
