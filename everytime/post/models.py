@@ -17,7 +17,7 @@ class Post(BaseModel):
 class PostImage(BaseModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="post_postImages")
     image = models.ImageField(upload_to="images/post/", null=True, blank=True)
-    #is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
 
 class UserPost(BaseModel):

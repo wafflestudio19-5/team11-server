@@ -3,24 +3,23 @@ from rest_framework import serializers
 from .models import Post, PostImage, UserPost
 from board.models import Board
 from university.models import University
-from user.serializers import UserNicknameSerializer
 
 class PostImageSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(use_url=True)
     class Meta:
         model = PostImage
-        fields = ['image']
+        fields = ['id', 'image']
 
 
 
 class PostSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
-    writer = serializers.SerializerMethodField()
+    postWriter = serializers.SerializerMethodField()
     class Meta:
         model = Post
-        fields = ['id', 'board', 'title', 'content', 'created_at', 'is_anonymous', 'images', 'writer']
+        fields = ['id', 'board', 'title', 'content', 'created_at', 'is_anonymous', 'images', 'postWriter']
 
-    def get_writer(self, instance):
+    def get_postWriter(self, instance):
         userPost = UserPost.objects.filter(post=instance, is_owner=True)
         if userPost:
             user = UserPost.objects.get(post=instance, is_owner=True).user
@@ -30,7 +29,7 @@ class PostSerializer(serializers.ModelSerializer):
         return "Anonymous"
 
     def get_images(self, instance):
-        return PostImageSerializer(instance.post_postImages.filter(), many=True, context=self.context).data
+        return PostImageSerializer(instance.post_postImages.filter(is_active=True), many=True, context=self.context).data
     #def get_user(self, instance):
 
 
@@ -56,6 +55,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
             board = University.objects.get(id=data['board'])
         except ObjectDoesNotExist:
             raise serializers.ValidationError({"status": "No such university exists"})
+        print(data)
         return data
 
     def create(self, validated_data):
@@ -70,6 +70,27 @@ class PostCreateSerializer(serializers.ModelSerializer):
         UserPost.objects.create(user=user, post=post, is_owner=True)
 
         return post
+
+class PostUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Post
+        fields = ('id', 'title', 'content', 'is_anonymous')
+
+    def validate(self, data):
+        # board, title, content 정보를 포함해야 함
+        error = {}
+        for i in ('title', 'content', 'is_anonymous'):
+            if i not in data:
+                error[i] = "field is required"
+        if error:
+            raise serializers.ValidationError(error)
+        # 존재하지 않는 게시판
+        return data
+    def update(self, instance, validated_data):
+        print(validated_data)
+        print("adsf")
+        return super().update(instance, validated_data)
 
 
 
