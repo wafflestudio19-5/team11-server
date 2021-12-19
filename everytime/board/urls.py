@@ -8,7 +8,7 @@ router.register('board', BoardViewSet, basename='board')  # /api/v1/user/
 
 urlpatterns = [
     path('register/board/', AddBoard.as_view(), name="AddBoard"),
-    path('BoardList/', BoardList.as_view(), name="BoardList"),
-    path('CustomizedBoardList/', CustomizedBoardList.as_view(), name="BoardList"),
+    path('boardlist/', BoardList.as_view(), name="BoardList"),
+    path('custom_boardList/', CustomizedBoardList.as_view(), name="BoardList"),
     path('', include(router.urls))
 ]
