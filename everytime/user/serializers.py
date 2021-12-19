@@ -30,7 +30,7 @@ class UserCreateSerializer(serializers.Serializer):
         university_name = data.get('university')
         try:
             university = University.objects.get(name = university_name)
-        except University.DoesNotExist:
+        except :
             raise serializers.ValidationError("등록되지 않은 학교명입니다.")
         return data
 

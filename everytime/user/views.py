@@ -42,7 +42,7 @@ class UserCheckIDView(APIView):
 
     def get(self, request, *args, **kwargs):
         queryset = User.objects.all()
-        data = request.data
+        data = request.query_params
         user_id = data.get('user_id')
         if not user_id:
             return Response({'아이디를 입력해주세요.'}, status = status.HTTP_400_BAD_REQUEST)
@@ -56,7 +56,7 @@ class UserCheckUsernameView(APIView):
 
     def get(self, request, *args, **kwargs):
         queryset = User.objects.all()
-        data = request.data
+        data = request.query_params
         nickname = data.get('nickname')
         if not nickname:
             return Response({'닉네임을 입력해주세요.'}, status = status.HTTP_400_BAD_REQUEST)
@@ -70,7 +70,7 @@ class UserCheckEmailView(APIView):
 
     def get(self, request, *args, **kwargs):
         queryset = User.objects.all()
-        data = request.data
+        data = request.query_params
         email = data.get('email')
         if not email:
             return Response({'이메일를 입력해주세요.'}, status = status.HTTP_400_BAD_REQUEST)

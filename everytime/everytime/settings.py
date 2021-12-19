@@ -41,7 +41,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 if "TEAM11_SERVER_ENV" in os.environ :
     print("env : server")
-    get_secret("SECRET_KEY")
+    SECRET_KEY = get_secret("SECRET_KEY")
     DEBUG = False
     ALLOWED_HOSTS = ['127.0.0.1',]
 else: 
@@ -115,7 +115,7 @@ WSGI_APPLICATION = 'everytime.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 if "TEAM11_SERVER_ENV" in os.environ: 
-    get_secret("DATABASES")
+    DATABASES = get_secret("DATABASES")
 else: 
     DATABASES = {
         'default': {
@@ -172,3 +172,23 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'user.User'
+
+# https://king-minwook.tistory.com/m/81?category=790110
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
