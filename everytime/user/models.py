@@ -5,7 +5,6 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, Permis
 from django.utils import timezone
 
 from university.models import University
-from department.models import Department
 
 class CustomUserManager(BaseUserManager):
     # CustomUserManager 가 위에 임포트해두고 쓰지 않는 UserManager 와 어떻게 다른지 파악하면서 보시면 좋을 것 같습니다.
@@ -49,21 +48,22 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     university = models.ForeignKey(University, on_delete=models.CASCADE)
 
-    nickname = models.CharField(max_length=30, blank=False, unique = True)
-    user_id = models.CharField(max_length=30, blank=False, db_index=True, unique=True)
-    email = models.EmailField(max_length=100, unique=True)
-    admission_year = models.IntegerField(max_length=10)
+    nickname = models.CharField(max_length=30, blank=False)
+    user_id = models.CharField(max_length=30, blank=False, unique=True, null=True)
+    email = models.EmailField(max_length=100, db_index=True, unique=True)
+    admission_year = models.IntegerField()
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(default=timezone.now)
     name = models.CharField(max_length=30, blank = False)
+    kakao_id = models.IntegerField(null=True, unique=True)
 
     # 해당 필드에 대한 설명은 부모 AbstractBaseUser 클래스 참고
     EMAIL_FIELD = 'email'
-    USERNAME_FIELD = 'user_id'
+    USERNAME_FIELD = 'email'
 
     def __str__(self):
-        return self.user_id
+        return self.email
 
     def get_short_name(self):
-        return self.user_id
+        return self.email
