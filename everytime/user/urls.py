@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
-from .views import UserCheckEmailView, UserCheckIDView, UserCheckUsernameView, UserViewSet, UserLoginView, UserSignUpView
+from .views import *
 
 from user import views
 router = SimpleRouter()

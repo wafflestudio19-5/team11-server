@@ -4,6 +4,12 @@ from rest_framework.response import Response
 from django.db import IntegrityError
 from user.serializers import UserCreateSerializer, UserLoginSerializer
 from user.models import User
+from django.contrib.auth.models import update_last_login
+
+from rest_framework_jwt.views import VerifyJSONWebTokenSerializer
+
+import logging
+logger = logging.getLogger('django')
 
 # Create your views here.
 class UserSignUpView(APIView):
@@ -24,11 +30,25 @@ class UserLoginView(APIView):
     permission_classes = (permissions.AllowAny, )
     
     def post(self, request):
-    
+        
+        # 기본 login 시도
         serializer = UserLoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        token = serializer.validated_data['token']
-
+        try : 
+            serializer.is_valid(raise_exception=True)
+            token = serializer.validated_data['token']
+        except : 
+            # validation 실패 시, token으로 login
+            try:
+                # HTTP Header에서 token 가져온 후 Verify, token 정보로 user 가져옴.
+                token = request.META.get('HTTP_AUTHORIZATION', " ").split(' ')[1]
+                data = {'token': token}
+                valid_data = VerifyJSONWebTokenSerializer().validate(data)
+                user = valid_data['user']
+                update_last_login(None, user)
+            except Exception as v:
+                logger.debug(v)
+                return Response({'error': "login_error", 'detail': "token login 오류"}, status=status.HTTP_400_BAD_REQUEST)
+        
         return Response({'success': True, 'token': token}, status=status.HTTP_200_OK)
 
 class UserViewSet(viewsets.GenericViewSet):

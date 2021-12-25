@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import datetime
 import os
 from pathlib import Path
 
@@ -173,12 +174,33 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'user.User'
 
+JWT_AUTH = {
+    'JWT_SECRET_KEY': SECRET_KEY,
+    'JWT_ALGORITHM': 'HS256',  # 암호화 알고리즘
+    'JWT_ALLOW_REFRESH': True,
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=28),  # 유효기간 설정 - app에서 login 유지
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=28),  # JWT 토큰 갱신 유효기간
+}
+
 # https://king-minwook.tistory.com/m/81?category=790110
 if "TEAM11_SERVER_ENV" in os.environ :
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
+        'filters': {
+            'require_debug_false': {
+                '()': 'django.utils.log.RequireDebugFalse',
+            },
+            'require_debug_true': {
+                '()': 'django.utils.log.RequireDebugTrue',
+            },
+        },
         'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'filters': ['require_debug_true'],
+                'class': 'logging.StreamHandler',
+            },
             'file': {
                 'level': 'DEBUG',
                 'class': 'logging.FileHandler',
@@ -187,7 +209,7 @@ if "TEAM11_SERVER_ENV" in os.environ :
         },
         'loggers': {
             'django': {
-                'handlers': ['file'],
+                'handlers': ['console','file'],
                 'level': 'DEBUG',
                 'propagate': True,
             },
