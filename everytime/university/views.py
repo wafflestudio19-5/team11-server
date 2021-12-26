@@ -10,7 +10,7 @@ class UniversityList(APIView):
     permission_classes = (permissions.AllowAny, )
     def get(self, request):
         serializer = UniversityViewSerializer
-        return Response(serializer(University.objects.all(), many=True).data, status=status.HTTP_200_OK)
+        return Response({"university_list" : serializer(University.objects.all(), many=True).data}, status=status.HTTP_200_OK)
         
     def post(self, request):
         if request.user.is_anonymous:
