@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-import datetime
 import os
 from pathlib import Path
 
@@ -65,14 +64,22 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'emailcode.apps.EmailCodeConfig',
-    'university.apps.UniversityConfig',
-    'department.apps.DepartmentConfig',
-    'user.apps.UserConfig',
 
+    'university.apps.UniversityConfig',
+    'user.apps.UserConfig',
     'django.contrib.sites',
     'rest_framework',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.kakao',
+    'allauth.socialaccount.providers.github',
+    'allauth.socialaccount.providers.google',
 ]
+
+
+
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_USE_TLS = True
@@ -123,7 +130,7 @@ else:
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
             'PORT': 3306,
-            'NAME': 'team11_db',
+            'NAME': 'red',
             'USER': 'team11_db_user',
             'PASSWORD': 'secretkey1234',
         }
@@ -174,44 +181,30 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'user.User'
 
-JWT_AUTH = {
-    'JWT_SECRET_KEY': SECRET_KEY,
-    'JWT_ALGORITHM': 'HS256',  # 암호화 알고리즘
-    'JWT_ALLOW_REFRESH': True,
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=28),  # 유효기간 설정 - app에서 login 유지
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=28),  # JWT 토큰 갱신 유효기간
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+
+REST_FRAMEWORK = {
+
+    # 모든 API -> 기본적으로 인증이 필요하게 됨
+    #'DEFAULT_PERMISSION_CLASSES': (
+    #    'rest_framework.permissions.IsAuthenticated',
+    #),
+
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ),
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+    ),
 }
 
+
+
+
 # https://king-minwook.tistory.com/m/81?category=790110
-if "TEAM11_SERVER_ENV" in os.environ :
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'filters': {
-            'require_debug_false': {
-                '()': 'django.utils.log.RequireDebugFalse',
-            },
-            'require_debug_true': {
-                '()': 'django.utils.log.RequireDebugTrue',
-            },
-        },
-        'handlers': {
-            'console': {
-                'level': 'DEBUG',
-                'filters': ['require_debug_true'],
-                'class': 'logging.StreamHandler',
-            },
-            'file': {
-                'level': 'DEBUG',
-                'class': 'logging.FileHandler',
-                'filename': 'debug.log',
-            },
-        },
-        'loggers': {
-            'django': {
-                'handlers': ['console','file'],
-                'level': 'DEBUG',
-                'propagate': True,
-            },
-        },
-    }
+
