@@ -61,7 +61,16 @@ class UserViewSet(viewsets.GenericViewSet):
 
     def list(self, request, pk=None):
         user = request.user
-        return Response({"id" : user.user_id, "name" : user.name, "nickname" : user.nickname, "university" : user.university.name, "admissionYear" : user.admission_year}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "user_id" : user.user_id, 
+                "name" : user.name, 
+                "email" : user.email, 
+                "admission_year" : user.admission_year, 
+                "nickname" : user.nickname, 
+                "university" : user.university.name
+            }
+            ,status=status.HTTP_200_OK)
 
 class UserDeleteViewset(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
@@ -71,14 +80,6 @@ class UserDeleteViewset(viewsets.GenericViewSet):
         word = request.query_params.get('password')
         user = request.user
         data = request.data.copy()
-        data['user_id'] = user.user_id
-        data['name'] = user.name
-        data['email'] = user.email
-        university = user.university.name
-        data['university'] = university
-        data['nickname'] = user.nickname
-        data['password'] = user.password
-        data['admission_year'] = user.admission_year
         data['is_active'] = False
         if not word:
             return Response({"error" : "wrong_password", "detail" : "비밀번호를 입력해주세요."}, status= status.HTTP_400_BAD_REQUEST)
@@ -141,15 +142,7 @@ class UserUpdateEmailView(viewsets.GenericViewSet):
     serializer_class = UserCreateSerializer
     def put(self, request, pk = None):
         user = request.user
-        data = request.query_params.copy()
-        data['user_id'] = user.user_id
-        data['name'] = user.name
-        university = user.university.name
-        data['university'] = university
-        data['nickname'] = user.nickname
-        data['password'] = user.password
-        data['admission_year'] = user.admission_year
-        data['is_active'] = user.is_active
+        data = request.data.copy()
         if data.get('email') == None:
             return Response({"error" : "이메일을 입력해주세요."}, status = status.HTTP_404_NOT_FOUND)
         serializer = self.get_serializer(user, data=data, partial = True)
@@ -160,24 +153,16 @@ class UserUpdateEmailView(viewsets.GenericViewSet):
             return Response({"success" : False, "detail" : "이미 사용중인 이메일입니다."}, status= status.HTTP_400_BAD_REQUEST)
         return Response({"success" : True}, status = status.HTTP_200_OK)
 
-    def list(self, request, pk=None):
-        email = request.query_params.get('email')
-        return Response({"detail" : email}, status = status.HTTP_200_OK)
+    # def list(self, request, pk=None):
+    #     email = request.query_params.get('email')
+    #     return Response({"detail" : email}, status = status.HTTP_200_OK)
 
 class UserUpdateNicknameView(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     serializer_class = UserCreateSerializer
     def put(self, request, pk = None):
         user = request.user
-        data = request.query_params.copy()
-        data['user_id'] = user.user_id
-        data['name'] = user.name
-        university = user.university.name
-        data['university'] = university
-        data['email'] = user.email
-        data['password'] = user.password
-        data['admission_year'] = user.admission_year
-        data['is_active'] = user.is_active
+        data = request.data.copy()
         if data.get('nickname') == None:
             return Response({"error" : "닉네임을 입력해주세요."}, status = status.HTTP_404_NOT_FOUND)
         serializer = self.get_serializer(user, data=data, partial = True)
@@ -189,7 +174,7 @@ class UserUpdateNicknameView(viewsets.GenericViewSet):
         return Response({"success" : True}, status = status.HTTP_200_OK)
 
     def list(self, request, pk=None):
-        nickname = request.query_params.get('nickname')
+        nickname = request.data.get('nickname')
         return Response({"detail" : nickname}, status = status.HTTP_200_OK)
 
 class UserUpdatePasswordView(viewsets.GenericViewSet):
@@ -197,8 +182,7 @@ class UserUpdatePasswordView(viewsets.GenericViewSet):
     serializer_class = UserCreateSerializer
     def put(self, request, pk = None):
         user = request.user
-        data = request.query_params
-
+        data = request.data.copy()
         if data.get('password') == None:
             return Response({"error" : "비밀번호를 입력해주세요."}, status = status.HTTP_404_NOT_FOUND)
         try:
@@ -210,5 +194,5 @@ class UserUpdatePasswordView(viewsets.GenericViewSet):
         return Response({"success" : True}, status = status.HTTP_200_OK)
 
     def list(self, request, pk=None):
-        password = request.query_params.get('password')
+        password = request.data.get('password')
         return Response({"detail" : password}, status = status.HTTP_200_OK)

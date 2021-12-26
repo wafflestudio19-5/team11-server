@@ -36,39 +36,23 @@ class UserCreateSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        university_name = data.get('university')
-        try:
-            university = University.objects.get(name = university_name)
-        except:
-            raise serializers.ValidationError("등록되지 않은 학교명입니다.")
-        user_id = data.get('user_id')
-        name = data.get('name')
-        email = data.get('email')
-        nickname = data.get('nickname')
-        password = data.get('password')
-        admission_year = data.get('admission_year')
-        if user_id == None:
-            raise serializers.ValidationError("아이디를 입력해주세요.")
-        if password == None:
-            raise serializers.ValidationError("비밀번호를 입력해주세요.")
-        if name == None:
-            raise serializers.ValidationError("이름을 입력해주세요.")
-        if email == None:
-            raise serializers.ValidationError("이메일을 입력해주세요.")
-        if nickname == None:
-            raise serializers.ValidationError("닉네임을 입력해주세요.")
-        if admission_year == None:
-            raise serializers.ValidationError("학년을 입력해주세요.")
+        # create 시에만 작동. update할때는 작동하지 않음.
+        if not self.instance : 
+            university_name = data.get('university')
+            try:
+                university = University.objects.get(name = university_name)
+            except:
+                raise serializers.ValidationError("등록되지 않은 학교명입니다.")
+
         return data
     
-    def update(self, instance, validated_data):
-        instance.email = validated_data.get('email')
-        instance.nickname = validated_data.get('nickname')
-        instance.password = validated_data.get('password')
-        instance.is_active = validated_data.get('is_active')
-        instance.save()
-        return instance
-
+    # def update(self, instance, validated_data):
+    #     instance.email = validated_data.get('email')
+    #     instance.nickname = validated_data.get('nickname')
+    #     instance.password = validated_data.get('password')
+    #     instance.is_active = validated_data.get('is_active')
+    #     instance.save()
+    #     return instance
 
     def create(self, validated_data):
         admission_year = validated_data.pop('admission_year')
