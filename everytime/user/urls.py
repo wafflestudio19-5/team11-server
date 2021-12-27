@@ -1,12 +1,14 @@
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 from .views import *
+from .views_kakao import *
 
-from user import views
+
 router = SimpleRouter()
 router.register('user', UserViewSet, basename='user')  # /api/v1/user/
 
 router1 = SimpleRouter()
+
 router1.register('my/email', UserUpdateEmailView, basename='my_email')
 router1.register('my/nickname', UserUpdateNicknameView, basename='my_nickname')
 router1.register('my/password', UserUpdatePasswordView, basename = 'my_password')
@@ -19,6 +21,10 @@ urlpatterns = [
     path('', include(router.urls), name='auth-user'),
     path('', include(router1.urls), name = 'update'),
     path('register/check_id/', UserCheckIDView.as_view(), name = 'check_id'),
-    path('register/check_email/', UserCheckEmailView.as_view(), name = 'check_email'),
-    path('register/check_nickname/', UserCheckUsernameView.as_view(), name = 'check_nickname')
+    path('registr/check_email/', UserCheckEmailView.as_view(), name = 'check_email'),
+    path('register/check_nickname/', UserCheckUsernameView.as_view(), name = 'check_nickname'),
+
+    path('register/kakao/', KakaoUserSignUpView.as_view(), name='kakaosignup'),
+    path('login/kakao/', KakaoUserLoginView.as_view(), name='kakaologin'),
+    path('register/oauth/', GetKakaoAccessCode.as_view(), name= 'access_code'),
 ]

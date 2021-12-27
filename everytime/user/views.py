@@ -22,6 +22,7 @@ class UserSignUpView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        print(request.data)
         try:
             validate_password(request.data.get('password'), user=request.user)
             user, jwt_token = serializer.save()
@@ -34,14 +35,14 @@ class UserSignUpView(APIView):
 
 class UserLoginView(APIView):
     permission_classes = (permissions.AllowAny, )
-    
+
     def post(self, request):
         # 기본 login 시도
         serializer = UserLoginSerializer(data=request.data)
-        try : 
+        try :
             serializer.is_valid(raise_exception=True)
             token = serializer.validated_data['token']
-        except : 
+        except :
             # validation 실패 시, token으로 login
             try:
                 # HTTP Header에서 token 가져온 후 Verify, token 정보로 user 가져옴.
@@ -53,7 +54,7 @@ class UserLoginView(APIView):
             except Exception as v:
                 logger.debug(v)
                 return Response({'error': "field_error", 'detail': "이메일 또는 비밀번호가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response({'success': True, 'token': token}, status=status.HTTP_200_OK)
 
 class UserViewSet(viewsets.GenericViewSet):
@@ -63,11 +64,11 @@ class UserViewSet(viewsets.GenericViewSet):
         user = request.user
         return Response(
             {
-                "user_id" : user.user_id, 
-                "name" : user.name, 
-                "email" : user.email, 
-                "admission_year" : user.admission_year, 
-                "nickname" : user.nickname, 
+                "user_id" : user.user_id,
+                "name" : user.name,
+                "email" : user.email,
+                "admission_year" : user.admission_year,
+                "nickname" : user.nickname,
                 "university" : user.university.name
             }
             ,status=status.HTTP_200_OK)
@@ -75,7 +76,7 @@ class UserViewSet(viewsets.GenericViewSet):
 class UserDeleteViewset(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     serializer_class = UserCreateSerializer
-    
+
     def delete(self, request):
         word = request.query_params.get('password')
         user = request.user
@@ -90,7 +91,7 @@ class UserDeleteViewset(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception = True)
         serializer.update(user, serializer.validated_data)
         return Response({"success" : "True"}, status = status.HTTP_200_OK)
-    
+
     def list(self, request, pk=None):
         password = request.query_params.get('password')
         return Response({"detail" : password}, status = status.HTTP_200_OK)
@@ -153,9 +154,10 @@ class UserUpdateEmailView(viewsets.GenericViewSet):
             return Response({"success" : False, "detail" : "이미 사용중인 이메일입니다."}, status= status.HTTP_400_BAD_REQUEST)
         return Response({"success" : True}, status = status.HTTP_200_OK)
 
-    # def list(self, request, pk=None):
-    #     email = request.query_params.get('email')
-    #     return Response({"detail" : email}, status = status.HTTP_200_OK)
+    #주석처리 했는데 url이 인식되지 않음
+    def list(self, request, pk=None):
+         email = request.query_params.get('email')
+         return Response({"detail" : email}, status = status.HTTP_200_OK)
 
 class UserUpdateNicknameView(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
@@ -196,3 +198,5 @@ class UserUpdatePasswordView(viewsets.GenericViewSet):
     def list(self, request, pk=None):
         password = request.data.get('password')
         return Response({"detail" : password}, status = status.HTTP_200_OK)
+
+
