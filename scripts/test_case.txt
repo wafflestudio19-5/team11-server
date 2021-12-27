@@ -1,0 +1,20 @@
+POST api/v1/register/university/
+{
+    "name": "서울대학교",
+    "email": "snu.ac.kr"
+}
+{
+    "name": "연세대학교",
+    "email": "yonsei.ac.kr"
+}
+
+POST api/v1/register/
+{
+    "user_id": "esc5221",
+    "name": "최병욱",
+    "email": "esc5221@snu.ac.kr",
+    "nickname": "코코넛",
+    "password": "secret1234",
+    "university": "서울대학교",
+    "admission_year": "2017"
+}
