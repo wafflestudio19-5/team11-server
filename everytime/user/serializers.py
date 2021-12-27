@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.models import update_last_login
+from django.db.models import fields
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
 from university.models import University
+from user.models import User
 
 # 토큰 사용을 위한 기본 세팅
 User = get_user_model()
@@ -16,23 +18,41 @@ def jwt_token_of(user):
     return jwt_token
 
 
-class UserCreateSerializer(serializers.Serializer):
+class UserCreateSerializer(serializers.ModelSerializer):
 
-    user_id = serializers.CharField(required = True)
-    name = serializers.CharField(required = True)
-    email = serializers.EmailField(required=True)
-    nickname = serializers.CharField(required=True)
-    password = serializers.CharField(required=True)
     university = serializers.CharField(required = True)
-    admission_year = serializers.IntegerField(required = True)
+
+    class Meta:
+        model = User
+        fields = (
+            'user_id',
+            'name',
+            'email',
+            'nickname',
+            'password',
+            'university',
+            'admission_year',
+            'is_active'
+        )
 
     def validate(self, data):
-        university_name = data.get('university')
-        try:
-            university = University.objects.get(name = university_name)
-        except :
-            raise serializers.ValidationError("등록되지 않은 학교명입니다.")
+        # create 시에만 작동. update할때는 작동하지 않음.
+        if not self.instance : 
+            university_name = data.get('university')
+            try:
+                university = University.objects.get(name = university_name)
+            except:
+                raise serializers.ValidationError("등록되지 않은 학교명입니다.")
+
         return data
+    
+    # def update(self, instance, validated_data):
+    #     instance.email = validated_data.get('email')
+    #     instance.nickname = validated_data.get('nickname')
+    #     instance.password = validated_data.get('password')
+    #     instance.is_active = validated_data.get('is_active')
+    #     instance.save()
+    #     return instance
 
     def create(self, validated_data):
         admission_year = validated_data.pop('admission_year')
@@ -42,7 +62,8 @@ class UserCreateSerializer(serializers.Serializer):
         user_id = validated_data.pop('user_id')
         university_name = validated_data.pop('university')
         university = University.objects.get(name = university_name)
-        user = User.objects.create_user(user_id = user_id, nickname = nickname, email = email, password = password, university = university, admission_year = admission_year)
+        name = validated_data.pop('name')
+        user = User.objects.create_user(user_id = user_id, nickname = nickname, email = email, password = password, university = university, admission_year = admission_year, name = name)
         return user, jwt_token_of(user)
 
 class UserLoginSerializer(serializers.Serializer):
