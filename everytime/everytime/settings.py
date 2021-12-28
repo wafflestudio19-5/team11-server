@@ -72,7 +72,15 @@ INSTALLED_APPS = [
 
     'django.contrib.sites',
     'rest_framework',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.kakao',
+    'allauth.socialaccount.providers.github',
+    'allauth.socialaccount.providers.google',
 ]
+
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
@@ -162,7 +170,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'common.validation.PasswordFormValidator'
     }
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

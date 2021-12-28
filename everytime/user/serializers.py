@@ -6,6 +6,7 @@ from rest_framework_jwt.settings import api_settings
 from university.models import University
 from user.models import User
 
+
 # 토큰 사용을 위한 기본 세팅
 User = get_user_model()
 JWT_PAYLOAD_HANDLER = api_settings.JWT_PAYLOAD_HANDLER
@@ -21,6 +22,7 @@ def jwt_token_of(user):
 class UserCreateSerializer(serializers.ModelSerializer):
 
     university = serializers.CharField(required = True)
+    user_id = serializers.CharField(required=True)
 
     class Meta:
         model = User
@@ -37,7 +39,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         # create 시에만 작동. update할때는 작동하지 않음.
-        if not self.instance : 
+        if not self.instance:
             university_name = data.get('university')
             try:
                 university = University.objects.get(name = university_name)
@@ -75,13 +77,23 @@ class UserLoginSerializer(serializers.Serializer):
     def validate(self, data):
         user_id = data.get('user_id', None)
         password = data.get('password', None)
-        user = authenticate(user_id=user_id, password=password)
+
+        # USERNAME_FIELD가 email이기 때문에 해당 user_id의 email을 받은 후 authenticate
+        try:
+            user = User.objects.get(user_id=user_id)
+        except:
+            raise serializers.ValidationError("이메일 또는 비밀번호가 잘못되었습니다.") #존재하지 않는 아이디
+        email = user.email
+
+        user = authenticate(email=email, password=password)
 
         if user is None:
-            raise serializers.ValidationError("이메일 또는 비밀번호가 잘못되었습니다.")
+            raise serializers.ValidationError("이메일 또는 비밀번호가 잘못되었습니다.") #비밀번호 오류
 
         update_last_login(None, user)
         return {
             'user_id': user.user_id,
             'token': jwt_token_of(user)
         }
+
+
