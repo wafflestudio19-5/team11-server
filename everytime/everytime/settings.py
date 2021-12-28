@@ -72,6 +72,9 @@ INSTALLED_APPS = [
     'department.apps.DepartmentConfig',
     'user.apps.UserConfig',
 
+    'board.apps.BoardConfig',
+    'article.apps.ArticleConfig',
+
     'django.contrib.sites',
     'rest_framework',
 

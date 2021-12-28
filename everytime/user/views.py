@@ -90,7 +90,7 @@ class UserDeleteViewset(viewsets.GenericViewSet):
         serializer = self.get_serializer(user, data=data, partial = True)
         serializer.is_valid(raise_exception = True)
         serializer.update(user, serializer.validated_data)
-        return Response({"success" : "True"}, status = status.HTTP_200_OK)
+        return Response({"success" : True}, status = status.HTTP_200_OK)
 
     def list(self, request, pk=None):
         password = request.query_params.get('password')
