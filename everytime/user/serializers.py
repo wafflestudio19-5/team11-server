@@ -82,13 +82,12 @@ class UserLoginSerializer(serializers.Serializer):
         try:
             user = User.objects.get(user_id=user_id)
         except:
-            raise serializers.ValidationError("이메일 또는 비밀번호가 잘못되었습니다.") #존재하지 않는 아이디
+            raise serializers.ValidationError("아이디가 존재하지 않습니다.") #존재하지 않는 아이디
         email = user.email
 
         user = authenticate(email=email, password=password)
-
         if user is None:
-            raise serializers.ValidationError("이메일 또는 비밀번호가 잘못되었습니다.") #비밀번호 오류
+            raise serializers.ValidationError("비밀번호가 잘못되었습니다.") #비밀번호 오류
 
         update_last_login(None, user)
         return {
