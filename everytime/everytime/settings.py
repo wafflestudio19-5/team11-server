@@ -14,6 +14,8 @@ import datetime
 import os
 from pathlib import Path
 
+SITE_ID=1
+
 import json
 from django.core.exceptions import ImproperlyConfigured
 
