@@ -1,12 +1,10 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers, status
-from .models import Board
-from university.models import University
-
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
-
-
+from .models import Board
+from university.models import University
+from article.serializers import *
 
 class BoardSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
@@ -21,9 +19,8 @@ class BoardSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         
-
         # create 시의 logic
-        if self.instance != None:
+        if self.instance == None:
             # superuser가 아니면 설정 제한
             if not self.context['request'].user.is_superuser:
                 data['university'] = self.context['request'].user.university.name
@@ -66,8 +63,8 @@ class BoardNameSerializer(BoardSerializer):
     class Meta(BoardSerializer.Meta):
         pass
     
-    def get_university(self, obj):
-        return obj.university.name
+    def get_university(self, board):
+        return board.university.name
 
 class BoardGetSeriallizer(serializers.ModelSerializer):
     name = serializers.CharField()
@@ -78,11 +75,14 @@ class BoardGetSeriallizer(serializers.ModelSerializer):
         model = Board
         fields = ('id', 'name', 'type', 'description')
 
-class BoardFilteredSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
-    description = serializers.CharField()
-
+class BoardListSeriallizer(serializers.Serializer):
+    articles = serializers.SerializerMethodField()
     class Meta:
-        model = Board
-        fields = ('id', 'name', 'description')
+        fields = ('articles')
+
+    def get_articles(self, board):
+        articles = ArticleSerializer(board.article.filter(), many=True).data
+        return articles
+        
+
 

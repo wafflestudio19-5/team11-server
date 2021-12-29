@@ -1,65 +1,52 @@
-# from django.core.exceptions import ObjectDoesNotExist
-# from rest_framework import serializers, status
-# from .models import Board
-# from university.models import University
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework import serializers, status
+from university.models import University
+from article.models import Article
 
+from .models import Board
 
+class ArticleCreateSerializer(serializers.ModelSerializer):
 
-
-
-# class BoardSerializer(serializers.ModelSerializer):
-#     name = serializers.CharField(required=True)
-#     university = serializers.CharField()
-#     type = serializers.ChoiceField(choices = Board.BoardType.choices)
-#     description = serializers.CharField(allow_blank =True)
-#     allow_anonymous = serializers.BooleanField()
-
-#     class Meta:
-#         model = Board
-#         fields = ('id', 'name', 'university', 'type', 'description', 'allow_anonymous')
-
-#     def validate(self, data):
-
-#         # 존재하지 않는 대학
-#         try:
-#             university = University.objects.get(name=data['university'])
-#         except ObjectDoesNotExist:
-#             raise serializers.ValidationError({"detail": "No such university exists"})
-
-#         # 이미 존재하는 게시판
-#         if len(Board.objects.filter(name=data['name'], university=university)):
-#             raise serializers.ValidationError({"detail": "This Board has already exists in this university"})
-
-#         return data
-
-
-#     def create(self, validated_data):
-#         validated_data['university'] = University.objects.get(name=validated_data['university'])
-#         board = Board.objects.create(**validated_data)
-#         return board
-        
-# class BoardNameSerializer(BoardSerializer):
-#     university = serializers.SerializerMethodField()
-#     class Meta(BoardSerializer.Meta):
-#         pass
+    title = serializers.CharField(required = True)
+    text = serializers.CharField(required = True)
+    is_anonymous = serializers.BooleanField(required=True)
+    is_question = serializers.BooleanField(required=True)
+    board = serializers.IntegerField()
     
-#     def get_university(self, obj):
-#         return obj.university.name
+    class Meta:
+        model = Article
+        fields = '__all__'
 
-# class BoardGetSeriallizer(serializers.ModelSerializer):
-#     name = serializers.CharField()
-#     type = serializers.ChoiceField(choices=Board.BoardType.choices)
-#     description = serializers.CharField()
+    def validate(self, data):
 
-#     class Meta:
-#         model = Board
-#         fields = ('id', 'name', 'type', 'description')
+        return data
 
-# class BoardFilteredSerializer(serializers.ModelSerializer):
-#     name = serializers.CharField()
-#     description = serializers.CharField()
+    def create(self, validated_data):
+        validated_data['writer'] = self.context['request'].user
+        board_id = validated_data['board']
+        validated_data['board'] = Board.objects.get(id = board_id)
+        article = Article.objects.create(**validated_data)
+        return article
 
-#     class Meta:
-#         model = Board
-#         fields = ('id', 'name', 'description')
+class ArticleSerializer(serializers.ModelSerializer):
+    title = serializers.CharField()
+    text = serializers.CharField()
+    user_nickname = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+    image_count = serializers.SerializerMethodField()
+    class Meta:
+        model = Article
+        fields = ('id', 'title', 'text', 'user_nickname', "like_count", "comment_count", "image_count")
+    
+    def get_user_nickname(self, obj):
+        return obj.writer.nickname
+    
+    def get_like_count(self, obj):
+        return 0
 
+    def get_comment_count(self, obj):
+        return 0
+
+    def get_image_count(self, obj):
+        return 0

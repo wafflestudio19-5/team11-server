@@ -15,7 +15,8 @@ class BoardViewSet(viewsets.GenericViewSet):
     serializer_class = BoardSerializer
     permission_classes = (permissions.AllowAny, ) # 테스트용 임시
 
-    # GET /board/?
+    # GET /board/
+    # GET /board/?search=[keyword]
     def list(self, request):
         query = request.query_params
         keyword = query.get('search')
@@ -28,7 +29,7 @@ class BoardViewSet(viewsets.GenericViewSet):
             if len(filtered_boards) == 0:
                 return Response(status = status.HTTP_404_NOT_FOUND, data = { "error" : "result_not_found", "detail" : "검색 결과가 없습니다."})
             
-            return Response(status=status.HTTP_200_OK, data={ "boards" : BoardFilteredSerializer(filtered_boards, many = True).data})
+            return Response(status=status.HTTP_200_OK, data={ "boards" : BoardGetSeriallizer(filtered_boards, many = True).data})
 
     # POST /board/
     def create(self, request):
@@ -51,10 +52,19 @@ class BoardViewSet(viewsets.GenericViewSet):
         serializer = BoardNameSerializer(board)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
+    #GET /board/{board_id}/
+    def retrieve(self, request, pk):
+        if not (board := Board.objects.get_or_none(id=pk)):
+            return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_id", "detail" : "게시판이 존재하지 않습니다."})
+        
+        serializer = BoardNameSerializer(board)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
     # DELETE /board/ 
     def destroy(self, request, pk):
         return Response(status=status.HTTP_200_OK, data='DELETE /board/')
 
-    # GET /board/{board_id}/?offset=[offset]&?limit=[limit]
-    def retrieve(self, request, pk=None):
-        return Response(status=status.HTTP_200_OK, data='GET /board/board_id/?offset=[offset]&?limit=[limit]')
+    # DELETE /board/ 
+    def destroy(self, request, pk):
+        return Response(status=status.HTTP_200_OK, data='DELETE /board/')
+
