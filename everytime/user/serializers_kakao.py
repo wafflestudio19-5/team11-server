@@ -3,7 +3,7 @@ from university.models import University
 from allauth.socialaccount.models import SocialAccount
 from requests import get
 from .models import User
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import update_last_login
 from django.db import IntegrityError
 from rest_framework_jwt.settings import api_settings
@@ -81,10 +81,10 @@ class KakaoUserLoginSerializer(serializers.Serializer):
         kakao_id = user_info_response.json().get('id')
 
         if kakao_id is None:
-            raise serializers.ValidationError("카카오 계정이 존재하지 않습니다")
+            raise serializers.ValidationError
 
         if not SocialAccount.objects.filter(uid=kakao_id, provider="kakao"):
-            raise serializers.ValidationError("카카오 계정이 존재하지 않습니다")
+            raise FileNotFoundError
 
         socialAccount = SocialAccount.objects.get(uid=kakao_id, provider="kakao")
         user = socialAccount.user
