@@ -9,8 +9,9 @@ from django.core.mail import EmailMessage, BadHeaderError
 from smtplib import SMTPException
 
 # Create your views here.
-class SetCodeToThisEmail(APIView):
+class Code(APIView):
     permission_classes = (permissions.AllowAny, )
+
     def post(self, request, *args, **kwargs):
         #이메일 필드의 존재 확인
 
@@ -41,8 +42,6 @@ class SetCodeToThisEmail(APIView):
         emailCode.save()
         return Response(status=status.HTTP_201_CREATED)
 
-class CompareCode(APIView):
-    permission_classes = (permissions.AllowAny,)
     def get(self, request, *args, **kwargs):
         email = request.query_params.get('email')
         code = request.query_params.get('code')
@@ -62,6 +61,7 @@ class CompareCode(APIView):
             return Response({'Result': 'Correct Code'}, status=status.HTTP_200_OK)
         else:
             return Response({'Result': 'Incorrect Code'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class EmailCodeViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
