@@ -16,7 +16,7 @@ class SetCodeToThisEmail(APIView):
 
         email = request.query_params.get('email')
 
-        if not 'email':
+        if not email:
             return Response({'email': 'email field is required'}, status=status.HTTP_404_NOT_FOUND)
 
         #이메일 앞뒤의 공백 제거
