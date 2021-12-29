@@ -13,10 +13,14 @@ class SetCodeToThisEmail(APIView):
     permission_classes = (permissions.AllowAny, )
     def post(self, request, *args, **kwargs):
         #이메일 필드의 존재 확인
-        if 'email' not in request.data:
+
+        email = request.query_params.get('email')
+
+        if not 'email':
             return Response({'email': 'email field is required'}, status=status.HTTP_404_NOT_FOUND)
+
         #이메일 앞뒤의 공백 제거
-        email = request.data['email'].strip()
+        email = email.strip()
         #이메일에 랜덤한 수 할당
         if EmailCode.objects.filter(email=email).exists():
             emailCode = EmailCode.objects.get(email=email)
@@ -24,7 +28,7 @@ class SetCodeToThisEmail(APIView):
         else:
             emailCode = EmailCode(email=email, code=random.randint(1000, 9999))
         #메일 전송 및 에러 처리
-        mail = EmailMessage("4자리 코드가 발급되었습니다", str(emailCode.code), to=[request.data['email']])
+        mail = EmailMessage("4자리 코드가 발급되었습니다", str(emailCode.code), to=[email])
         try:
             mail.send(fail_silently=False)
         except BadHeaderError:  # If mail's Subject is not properly formatted.
