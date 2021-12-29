@@ -157,7 +157,7 @@ else:
             'PORT': 3306,
             'NAME': 'team11_db',
             'USER': 'team11_db_user',
-            'PASSWORD': 'secretkey1234',
+            'PASSWORD': 'secret1234',
         }
     }
 
