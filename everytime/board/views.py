@@ -62,9 +62,14 @@ class BoardViewSet(viewsets.GenericViewSet):
 
     # DELETE /board/ 
     def destroy(self, request, pk):
-        return Response(status=status.HTTP_200_OK, data='DELETE /board/')
 
-    # DELETE /board/ 
-    def destroy(self, request, pk):
-        return Response(status=status.HTTP_200_OK, data='DELETE /board/')
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED, data = {"error" : "wrong_user", "detail" : "관리자만 접근 가능합니다."})
+
+        if not (board := Board.objects.get_or_none(id=pk)):
+            return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_id", "detail" : "게시판이 존재하지 않습니다."})
+
+        board = Board.objects.get(id =pk)
+        board.delete()
+        return Response(status=status.HTTP_200_OK, data={"success" : True})
 
