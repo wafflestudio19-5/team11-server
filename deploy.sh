@@ -2,15 +2,15 @@ source ~/.bash_profile
 cd ~/team11-server
 source venv/bin/activate
 export TEAM11_SERVER_ENV=1
-if [ -z "$1" ] && [ "$1" = '--new' ] ; then
+
+if [ "$1" ] && [ "$1" = '--new' ] ; then
     #git pull origin master
     cat requirements.txt | xargs -n 1 pip3 install
 fi
 
 ### django migration ###
 cd everytime
-if [ -z "$1" ] && [ "$1" = '--new' ] ; then
-    python3 manage.py makemigrations
+if [ "$1" ] && [ "$1" = '--new' ] ; then
     python3 manage.py showmigrations
     python3 manage.py migrate
 fi
