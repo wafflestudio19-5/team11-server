@@ -38,9 +38,23 @@ class SetCodeToThisEmail(APIView):
         return Response(status=status.HTTP_201_CREATED)
 
 class CompareCode(APIView):
+    permission_classes = (permissions.AllowAny,)
     def get(self, request, *args, **kwargs):
-        email = request.data['email'].strip()
-        if EmailCode.objects.filter(email=email, code=request.data['code']).exists():
+        email = request.query_params.get('email')
+        code = request.query_params.get('code')
+
+        error = {}
+        if not email:
+            error["email"] = "This field is required."
+        if not code:
+            error["code"] = "This field is required."
+
+        if error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        email = email.strip()
+
+        if EmailCode.objects.filter(email=email, code=code).exists():
             return Response({'Result': 'Correct Code'}, status=status.HTTP_200_OK)
         else:
             return Response({'Result': 'Incorrect Code'}, status=status.HTTP_404_NOT_FOUND)
