@@ -42,7 +42,8 @@ class UserLoginView(APIView):
         try :
             serializer.is_valid(raise_exception=True)
             token = serializer.validated_data['token']
-        except :
+        except Exception as v:
+            print(v)
             # validation 실패 시, token으로 login
             try:
                 # HTTP Header에서 token 가져온 후 Verify, token 정보로 user 가져옴.
@@ -52,6 +53,7 @@ class UserLoginView(APIView):
                 user = valid_data['user']
                 update_last_login(None, user)
             except Exception as v:
+                print(v)
                 logger.debug(v)
                 return Response({'error': "field_error", 'detail': "이메일 또는 비밀번호가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -78,18 +80,17 @@ class UserDeleteViewset(viewsets.GenericViewSet):
     serializer_class = UserCreateSerializer
 
     def delete(self, request):
-        word = request.query_params.get('password')
         user = request.user
         data = request.data.copy()
         data['is_active'] = False
-        if not word:
+        word = data.get('password')
+        if word == None:
             return Response({"error" : "wrong_password", "detail" : "비밀번호를 입력해주세요."}, status= status.HTTP_400_BAD_REQUEST)
-        boolean = authenticate(user_id=user.user_id, password=word)
+        boolean = authenticate(email=user.email, password=word)
         if boolean is None:
             return Response({"error" : "wrong_password", "detail" : "계정 비밀번호가 올바르지 않습니다."}, status= status.HTTP_400_BAD_REQUEST)
-        serializer = self.get_serializer(user, data=data, partial = True)
-        serializer.is_valid(raise_exception = True)
-        serializer.update(user, serializer.validated_data)
+        user.is_active = False
+        user.save()
         return Response({"success" : True}, status = status.HTTP_200_OK)
 
     def list(self, request, pk=None):
