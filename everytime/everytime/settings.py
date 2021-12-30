@@ -106,20 +106,18 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20
 }
 
-try:
-    f = open("everytime/account.txt", 'r')
-    google_account = f.read().split("\n")
-    f.close()
-except:
-    pass
-
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = google_account[0]+"@gmail.com"
-EMAIL_HOST_PASSWORD = google_account[1]
 DEFAULT_FROM_MAIL = "waffle"
+
+if "TEAM11_SERVER_ENV" in os.environ: 
+    EMAIL_HOST_USER = get_secret("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = get_secret("EMAIL_HOST_PASSWORD")
+else: 
+    EMAIL_HOST_USER = "johndoe@localhost.com"
+    EMAIL_HOST_PASSWORD = "dummypassword"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
