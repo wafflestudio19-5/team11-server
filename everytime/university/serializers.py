@@ -8,7 +8,7 @@ class UniversitySerializer(serializers.ModelSerializer):
     email = serializers.CharField()
     class Meta:
         model = University
-        fields = ('name', 'email')
+        fields = ('name', 'email',)
 
     def validate(self, data):
         error = {}
@@ -27,5 +27,5 @@ class UniversityViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = University
-        fields = ('id', 'name')
+        fields = ('id', 'name',)
 

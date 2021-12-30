@@ -7,6 +7,7 @@ class Comment(BaseModel):
 
     article = models.ForeignKey(Article, on_delete=models.CASCADE) 
     parent = models.ForeignKey('self', on_delete=models.PROTECT, null=True)
+    is_subcomment = models.BooleanField(default=False, null = False)
     text = models.CharField(max_length=300, null = False)
     created_at = models.DateTimeField(auto_now_add=True)
     commenter = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='comments', null = True)

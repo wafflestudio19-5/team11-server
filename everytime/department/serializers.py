@@ -7,7 +7,7 @@ from university.models import University
 class DepartmentNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
-        fields = ('id', 'name')
+        fields = ('id', 'name',)
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Department
-        fields = ('id', 'name', 'university')
+        fields = ('id', 'name', 'university',)
 
     def validate(self, data):
 

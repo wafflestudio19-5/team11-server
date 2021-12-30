@@ -44,7 +44,8 @@ class ArticleViewSet(viewsets.GenericViewSet):
         if article.board != board:
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_match", "detail" : "해당 게시판의 게시글이 아닙니다."})
 
-        return Response(status=status.HTTP_200_OK, data=ArticleSerializer(article).data)
+        return Response(status=status.HTTP_200_OK, 
+                        data=ArticleWithCommentSerializer(article, context={'request': request}).data)
 
     #DELETE /board/{board_id}/article/{pk}/
     def destroy(self, request, board_id, pk=None):
@@ -53,16 +54,12 @@ class ArticleViewSet(viewsets.GenericViewSet):
         if not (article := Article.objects.get_or_none(id=pk)):
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_article_id", "detail" : "게시글이 존재하지 않습니다."})
         
-        print("break 1")
         board = Board.objects.get(id=board_id)
         article = Article.objects.get(id = pk)
-        print("break 2")
 
         if article.board != board:
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_match", "detail" : "해당 게시판의 게시글이 아닙니다."})
         article.delete()
-        
-        print("break 3")
 
         return Response(status=status.HTTP_200_OK, data={"success" : True})
 

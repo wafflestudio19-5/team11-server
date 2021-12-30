@@ -15,7 +15,7 @@ class BoardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Board
-        fields = ('id', 'name', 'university', 'type', 'description', 'allow_anonymous')
+        fields = ('id', 'name', 'university', 'type', 'description', 'allow_anonymous',)
 
     def validate(self, data):
         
@@ -73,16 +73,17 @@ class BoardGetSeriallizer(serializers.ModelSerializer):
 
     class Meta:
         model = Board
-        fields = ('id', 'name', 'type', 'description')
+        fields = ('id', 'name', 'type', 'description',)
 
-class BoardListSeriallizer(serializers.Serializer):
-    articles = serializers.SerializerMethodField()
-    class Meta:
-        fields = ('articles')
+# Article list로 대체
+# class BoardListSeriallizer(serializers.Serializer):
+#     articles = serializers.SerializerMethodField()
+#     class Meta:
+#         fields = ('articles')
 
-    def get_articles(self, board):
-        articles = ArticleSerializer(board.article.filter(), many=True).data
-        return articles
+#     def get_articles(self, board):
+#         articles = ArticleSerializer(board.article.filter(), many=True).data
+#         return articles
         
 
 

@@ -1,10 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers, status
-from university.models import University
 from article.models import Article
+from comment.models import Comment
+from .models import Board
+from comment.serializers import CommentSerializer
+
 from django.utils import timezone
 
-from .models import Board
 
 # 시간 비교 - https://jsikim1.tistory.com/144
 def time_formatting(timezone_obj):
@@ -52,6 +54,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     image_count = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
     f_created_at = serializers.SerializerMethodField()
+
     class Meta:
         model = Article
         fields = (
@@ -59,12 +62,12 @@ class ArticleSerializer(serializers.ModelSerializer):
             'title', 
             'text', 
             'user_nickname', 
-            "like_count", 
-            "comment_count", 
-            "image_count", 
-            "created_at", 
-            "f_created_at"
-            )
+            'like_count', 
+            'comment_count', 
+            'image_count', 
+            'created_at', 
+            'f_created_at',
+        )
     
     def get_user_nickname(self, obj):
         return obj.writer.nickname
@@ -79,14 +82,21 @@ class ArticleSerializer(serializers.ModelSerializer):
         return 0
 
     def get_created_at(self, obj):
-        return timezone.localtime(obj.created_at)
+        return timezone.localtime(obj.created_at).strftime("%m/%d %H:%M")
 
     # strftime format - https://ponyozzang.tistory.com/626
     # timezone에 맞게 출력 - https://devlog.jwgo.kr/2020/10/28/using-timezone-in-django/
     def get_f_created_at(self, obj):
         local_created_at = timezone.localtime(obj.created_at)
         return time_formatting(local_created_at)
-    
 
 class ArticleWithCommentSerializer(ArticleSerializer):
-    pass
+    comments = serializers.SerializerMethodField()
+
+    class Meta(ArticleSerializer.Meta):
+        fields = ArticleSerializer.Meta.fields \
+                + ('comments',)
+
+    def get_comments(self, article):
+        comments = Comment.objects.filter(article=article).order_by('parent')
+        return CommentSerializer(comments, context=self.context, many=True).data

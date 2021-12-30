@@ -54,3 +54,23 @@ class CommentViewSet(viewsets.GenericViewSet):
         comment.delete()
 
         return Response(status=status.HTTP_200_OK, data={"success" : True})
+
+    # #GET /board/{board_id}/article/{article_id}/comment/{comment_id}
+    # def retrive(self, request, board_id, article_id, pk):
+    #     if not (board := Board.objects.get_or_none(id=board_id)):
+    #         return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_board_id", "detail" : "게시판이 존재하지 않습니다."})
+    #     if not (article := Article.objects.get_or_none(id=article_id)):
+    #         return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_article_id", "detail" : "게시글이 존재하지 않습니다."})
+    #     if not (comment := Comment.objects.get_or_none(id=pk)):
+    #         return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_comment_id", "detail" : "댓글이 존재하지 않습니다."})
+        
+    #     board = Board.objects.get(id=board_id)
+    #     article = Article.objects.get(id = article_id)
+    #     comment = Comment.objects.get(id = pk)
+
+    #     if article.board != board:
+    #         return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_match", "detail" : "해당 게시판의 게시글이 아닙니다."})
+    #     if comment.article != article:
+    #         return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_match", "detail" : "해당 게시글의 댓글이 아닙니다."})
+
+    #     return Response(status=status.HTTP_200_OK, data=CommentViewSerializer(article).data)
