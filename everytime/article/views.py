@@ -2,7 +2,7 @@ from re import U
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from rest_framework import serializers, status, viewsets, permissions
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -80,3 +80,60 @@ class ArticleViewSet(viewsets.GenericViewSet):
     def get_queryset(self): 
         queryset = Article.objects.all() 
         return queryset
+
+class UserArticleLikeView(viewsets.GenericViewSet):
+    serializer_class = UserArticleCreateSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def create(self, request, article_id):
+        data = request.data.copy()
+        if data.get('scrap'):
+            data.pop('scrap')
+        if data.get('like'):
+            data.pop('like')
+        data['article_id'] = article_id
+        data['like'] = True
+
+        article = Article.objects.get_or_none(id=article_id)
+
+        if not article:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_article_id", "detail" : "게시글이 존재하지 않습니다."})
+
+        if not (user_article := UserArticle.objects.get_or_none(user = request.user, article = article)):
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            user_article = serializer.save()
+        else:
+            user_article = UserArticle.objects.get(user = request.user, article = article)
+            serializer = self.get_serializer(data=data, partial = True)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(user_article, serializer.validated_data)
+
+        return Response(status=status.HTTP_200_OK, data={"like" : UserArticle.objects.filter(article = article, like = True).count()})
+
+class UserArticleScrapView(viewsets.GenericViewSet):
+    serializer_class = UserArticleCreateSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def create(self, request, article_id):
+        article = Article.objects.get_or_none(id=article_id)
+        data = request.data.copy()
+        if data.get('scrap'):
+            data.pop('scrap')
+        if data.get('like'):
+            data.pop('like')
+        data['article_id'] = article_id
+        data['scrap'] = True
+        if not article:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_article_id", "detail" : "게시글이 존재하지 않습니다."})
+        if not (user_article := UserArticle.objects.get_or_none(user = request.user, article = article)):
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            user_article = serializer.save()
+        else:
+            user_article = UserArticle.objects.get(user = request.user, article = article)
+            serializer = self.get_serializer(data=data, partial = True)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(user_article, serializer.validated_data)
+
+        return Response(status=status.HTTP_200_OK, data={"like" : UserArticle.objects.filter(article = article, scrap = True).count()})

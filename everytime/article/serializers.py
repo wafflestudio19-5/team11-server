@@ -1,8 +1,8 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from rest_framework import serializers, status
 from article.models import Article
 from comment.models import Comment
-from .models import Board
+from .models import Board, UserArticle
 from comment.serializers import CommentSerializer
 
 from django.utils import timezone
@@ -64,7 +64,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'user_nickname', 
             'like_count', 
             'comment_count', 
-            'image_count', 
+            'image_count',
             'created_at', 
             'f_created_at',
         )
@@ -73,10 +73,10 @@ class ArticleSerializer(serializers.ModelSerializer):
         return obj.writer.nickname
     
     def get_like_count(self, obj):
-        return 0
+        return UserArticle.objects.filter(article = obj, like = True).count()
 
     def get_comment_count(self, obj):
-        return 0
+        return Comment.objects.filter(article = obj).count()
 
     def get_image_count(self, obj):
         return 0
@@ -100,3 +100,31 @@ class ArticleWithCommentSerializer(ArticleSerializer):
     def get_comments(self, article):
         comments = Comment.objects.filter(article=article).order_by('parent')
         return CommentSerializer(comments, context=self.context, many=True).data
+
+class UserArticleCreateSerializer(serializers.ModelSerializer):
+    like = serializers.BooleanField()
+    scrap = serializers.BooleanField()
+    article_id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = UserArticle
+        fields = (
+            'id',
+            'like',
+            'scrap',
+            'article_id'
+        )
+
+    def validate(self, data):
+        is_like = data.get('like')
+        is_scrap = data.get('scrap')
+        if not is_like and not is_scrap:
+            raise ValidationError('like나 scrap 입력해주세요.')
+        return data
+
+    def create(self, validated_data):
+        article_id = validated_data['article_id']
+        validated_data['article'] = Article.objects.get(id = article_id)
+        validated_data['user'] = self.context['request'].user
+        user_article = UserArticle.objects.create(**validated_data)
+        return user_article

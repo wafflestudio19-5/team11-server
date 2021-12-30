@@ -12,3 +12,9 @@ class Article(BaseModel):
     created_at = models.DateTimeField(auto_now_add=True)
     is_anonymous = models.BooleanField(default=True)
     is_question = models.BooleanField(default=False)
+
+class UserArticle(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='user_article', null = True)
+    article = models.ForeignKey(Article, on_delete=models.SET_NULL, related_name='user_article', null = True)
+    like = models.BooleanField(default = False, null = False)
+    scrap = models.BooleanField(default = False, null = False)
