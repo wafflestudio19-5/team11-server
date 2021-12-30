@@ -34,9 +34,11 @@ class CommentCreateSerializer(serializers.ModelSerializer):
             self.context['request'].user == article.writer
         )
         validated_data['commenter'] = self.context['request'].user
+        validated_data['is_subcomment'] = ('parent' in validated_data.keys())
 
         comment = Comment.objects.create(**validated_data)
-        comment.parent = comment
+        if 'parent' not in validated_data:
+            comment.parent = comment
         comment.save()
         return comment
 
