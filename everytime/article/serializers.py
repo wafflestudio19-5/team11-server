@@ -6,7 +6,7 @@ from .models import Board, UserArticle
 from comment.serializers import CommentSerializer
 
 from django.utils import timezone
-
+from common.custom_exception import CustomException
 
 # 시간 비교 - https://jsikim1.tistory.com/144
 def time_formatting(timezone_obj):
@@ -101,29 +101,32 @@ class ArticleWithCommentSerializer(ArticleSerializer):
         comments = Comment.objects.filter(article=article).order_by('parent')
         return CommentSerializer(comments, context=self.context, many=True).data
 
-class UserArticleCreateSerializer(serializers.ModelSerializer):
-    like = serializers.BooleanField()
-    scrap = serializers.BooleanField()
-    article_id = serializers.IntegerField(required=True)
+class UserArticleSerializer(serializers.ModelSerializer):
+    like = serializers.BooleanField(required=False)
+    scrap = serializers.BooleanField(required=False)
 
     class Meta:
         model = UserArticle
-        fields = (
-            'id',
-            'like',
-            'scrap',
-            'article_id'
-        )
+        fields = ('id', 'like', 'scrap',)
 
     def validate(self, data):
-        is_like = data.get('like')
-        is_scrap = data.get('scrap')
-        if not is_like and not is_scrap:
-            raise ValidationError('like나 scrap 입력해주세요.')
-        return data
+        action = self.context['view'].basename 
+        if self.instance == None:
+            if action == 'article_like':
+                return {'like' : True}
+            elif action == 'article_scrap':
+                return {'scrap' : True}
+            return {}
+        else:
+            if action == 'article_like':
+                raise CustomException("이미 공감한 글입니다.", status.HTTP_400_BAD_REQUEST)
+            elif action == 'article_scrap':
+                return {'scrap' : not self.instance.scrap} # scrap과 unscrap 구현
+            return {}
 
     def create(self, validated_data):
-        article_id = validated_data['article_id']
+
+        article_id = self.context['view'].kwargs['article_id']
         validated_data['article'] = Article.objects.get(id = article_id)
         validated_data['user'] = self.context['request'].user
         user_article = UserArticle.objects.create(**validated_data)
