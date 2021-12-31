@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from rest_framework import serializers, status
-from comment.models import Comment
+from comment.models import Comment, UserComment
 from article.models import Article
 
 from django.utils import timezone
@@ -46,6 +46,7 @@ class CommentSerializer(serializers.ModelSerializer):
     is_mine = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
     user_nickname = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -72,3 +73,28 @@ class CommentSerializer(serializers.ModelSerializer):
             return '익명(글쓴이)'
         else:
             return obj.commenter.nickname
+    
+    def get_like_count(self, obj):
+        return UserComment.objects.filter(comment = obj, like = True).count()
+
+class UserCommentCreateSerializer(serializers.ModelSerializer):
+    like = serializers.BooleanField()
+    comment_id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = UserComment
+        fields = (
+            'id',
+            'like',
+            'comment_id'
+        )
+
+    def validate(self, data):
+        return data
+
+    def create(self, validated_data):
+        comment_id = validated_data.pop('comment_id')
+        validated_data['comment'] = Comment.objects.get(id = comment_id)
+        validated_data['user'] = self.context['request'].user
+        user_article = UserComment.objects.create(**validated_data)
+        return user_article

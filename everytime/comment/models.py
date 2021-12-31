@@ -18,3 +18,8 @@ class Comment(BaseModel):
 
     # Serializer field only
     #is_mine True,
+
+class UserComment(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='user_comment', null = True)
+    comment = models.ForeignKey(Comment, on_delete=models.SET_NULL, related_name='user_comment', null = True)
+    like = models.BooleanField(default = False, null = False)
