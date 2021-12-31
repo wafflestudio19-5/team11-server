@@ -3,7 +3,7 @@ everytime/everytime/secret.json
 everytime/everytime/settings_server.py
 
 # custom
-.vscode/settings.json
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
