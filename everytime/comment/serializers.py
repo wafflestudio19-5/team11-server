@@ -46,6 +46,7 @@ class CommentSerializer(serializers.ModelSerializer):
     is_mine = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
     user_nickname = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -72,6 +73,9 @@ class CommentSerializer(serializers.ModelSerializer):
             return '익명(글쓴이)'
         else:
             return obj.commenter.nickname
+    
+    def get_like_count(self, obj):
+        return UserComment.objects.filter(comment = obj, like = True).count()
 
 class UserCommentCreateSerializer(serializers.ModelSerializer):
     like = serializers.BooleanField()
