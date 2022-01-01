@@ -5,7 +5,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from .models import Board
 from university.models import University
 from article.serializers import *
-
+from common.custom_exception import CustomException
 class BoardSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     university = serializers.CharField(required=False)
@@ -36,11 +36,11 @@ class BoardSerializer(serializers.ModelSerializer):
             try:
                 university = University.objects.get(name=data['university'])
             except ObjectDoesNotExist:
-                raise serializers.ValidationError({"detail": "No such university exists"})
+                raise CustomException("대학교가 존재하지 않습니다.", status.HTTP_404_NOT_FOUND)
 
             # 이미 존재하는 게시판
             if len(Board.objects.filter(name=data['name'], university=university)):
-                raise serializers.ValidationError({"detail": "This Board has already exists in this university"})
+                raise CustomException("중복된 이름의 게시판이 있습니다.", status.HTTP_409_CONFLICT)
         else:
             return {'description' : data['description']}
 
