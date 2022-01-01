@@ -9,13 +9,17 @@ from article.serializers import *
 class BoardSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     university = serializers.CharField(required=False)
-    type = serializers.ChoiceField(choices = Board.BoardType.choices)
-    description = serializers.CharField(allow_blank =True)
+    type = serializers.ChoiceField(choices=Board.BoardType.choices)
+    description = serializers.CharField(allow_blank=True)
     allow_anonymous = serializers.BooleanField()
+    is_mine = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Board
-        fields = ('id', 'name', 'university', 'type', 'description', 'allow_anonymous',)
+        fields = ('id', 'name', 'university', 'type', 'description', 'allow_anonymous', 'is_mine')
+
+    def get_is_mine(self, obj):
+        return obj.manager == self.context['request'].user
 
     def validate(self, data):
         

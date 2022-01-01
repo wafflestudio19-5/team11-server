@@ -33,11 +33,11 @@ class BoardViewSet(viewsets.GenericViewSet):
 
     # POST /board/
     def create(self, request):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        serializer = BoardNameSerializer(serializer.instance)
+        serializer = BoardNameSerializer(serializer.instance, context={'request': request})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     # PUT /board/{board_id}/
@@ -49,7 +49,7 @@ class BoardViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.update(board, serializer.validated_data)
 
-        serializer = BoardNameSerializer(board)
+        serializer = BoardNameSerializer(board, context={'request': request})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     #GET /board/{board_id}/
@@ -57,7 +57,7 @@ class BoardViewSet(viewsets.GenericViewSet):
         if not (board := Board.objects.get_or_none(id=pk)):
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_id", "detail" : "게시판이 존재하지 않습니다."})
         
-        serializer = BoardNameSerializer(board)
+        serializer = BoardNameSerializer(board, context={'request': request})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     # DELETE /board/ 

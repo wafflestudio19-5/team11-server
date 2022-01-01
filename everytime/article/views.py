@@ -14,7 +14,7 @@ from board.models import Board
 # Create your views here.
 class ArticleViewSet(viewsets.GenericViewSet):
     serializer_class = ArticleCreateSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
    
     #POST /board/{board_id}/article/
     def create(self, request, board_id):
@@ -83,7 +83,7 @@ class ArticleViewSet(viewsets.GenericViewSet):
 
 class UserArticleView(viewsets.GenericViewSet):
     serializer_class = UserArticleSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
 
     #POST /like/article/{article_id}
     def create(self, request, article_id):

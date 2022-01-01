@@ -49,7 +49,9 @@ class ArticleSerializer(serializers.ModelSerializer):
     title = serializers.CharField()
     text = serializers.CharField()
     user_nickname = serializers.SerializerMethodField()
+    is_mine = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
+    scrap_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     image_count = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
@@ -62,7 +64,9 @@ class ArticleSerializer(serializers.ModelSerializer):
             'title', 
             'text', 
             'user_nickname', 
+            'is_mine',
             'like_count', 
+            'scrap_count',
             'comment_count', 
             'image_count',
             'created_at', 
@@ -71,9 +75,15 @@ class ArticleSerializer(serializers.ModelSerializer):
     
     def get_user_nickname(self, obj):
         return obj.writer.nickname
+
+    def get_is_mine(self, obj):
+        return obj.writer == self.context['request'].user
     
     def get_like_count(self, obj):
         return UserArticle.objects.filter(article = obj, like = True).count()
+
+    def get_scrap_count(self, obj):
+        return UserArticle.objects.filter(article = obj, scrap = True).count()
 
     def get_comment_count(self, obj):
         return Comment.objects.filter(article = obj).count()
