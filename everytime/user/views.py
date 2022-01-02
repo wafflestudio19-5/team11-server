@@ -199,5 +199,3 @@ class UserUpdatePasswordView(viewsets.GenericViewSet):
     def list(self, request, pk=None):
         password = request.data.get('password')
         return Response({"detail" : password}, status = status.HTTP_200_OK)
-
-
