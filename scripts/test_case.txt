@@ -47,3 +47,47 @@ POST api/v1/register/kakao/
     "university": "서울대학교",
     "admission_year": "2017"
 }
+
+POST api/v1/board/
+{
+    "name": "자유게시판",
+    "type": 0,
+    "description": "f",
+    "allow_anonymous": true
+}
+{
+    "name": "새내기게시판",
+    "type": 0,
+    "description": "",
+    "allow_anonymous": true
+}
+{
+    "name": "홍보게시판",
+    "type": 2,
+    "description": "",
+    "allow_anonymous": true
+}
+{
+    "name": "와플1",
+    "type": 6,
+    "description": "와플1입니다.",
+    "allow_anonymous": false
+}
+{
+    "name": "와플2",
+    "type": 6,
+    "description": "와플2입니다.",
+    "allow_anonymous": false
+}
+{
+    "name": "와플3",
+    "type": 6,
+    "description": "와플3입니다.",
+    "allow_anonymous": false
+}
+{
+    "name": "와플4",
+    "type": 6,
+    "description": "와플4입니다.",
+    "allow_anonymous": false
+}

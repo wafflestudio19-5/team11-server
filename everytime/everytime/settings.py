@@ -72,6 +72,10 @@ INSTALLED_APPS = [
     'department.apps.DepartmentConfig',
     'user.apps.UserConfig',
 
+    'board.apps.BoardConfig',
+    'article.apps.ArticleConfig',
+    'comment.apps.CommentConfig',
+
     'django.contrib.sites',
     'rest_framework',
 
@@ -97,15 +101,23 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
+
+    'DEFAULT_PAGINATION_CLASS': 'common.pagination.CustomPagination',
+    'PAGE_SIZE': 20
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = "waffle.team11@gmail.com"
-EMAIL_HOST_PASSWORD = "showmethemoney"
-DEFAULT_FROM_MAIL = "waffle.team11"
+DEFAULT_FROM_MAIL = "waffle"
+
+if "TEAM11_SERVER_ENV" in os.environ: 
+    EMAIL_HOST_USER = get_secret("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = get_secret("EMAIL_HOST_PASSWORD")
+else: 
+    EMAIL_HOST_USER = "johndoe@localhost.com"
+    EMAIL_HOST_PASSWORD = "dummypassword"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -178,7 +190,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
