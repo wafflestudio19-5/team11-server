@@ -72,7 +72,8 @@ class ArticleViewSet(viewsets.GenericViewSet):
         page = self.paginate_queryset(queryset) 
 
         if page is not None: 
-            serializer = ArticleSerializer(page, many=True) 
+            #serializer = ArticleSerializer(page, many=True) 
+            serializer = ArticleSerializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data) 
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
