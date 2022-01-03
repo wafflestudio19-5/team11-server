@@ -4,6 +4,8 @@ from article.models import Article
 from comment.models import Comment
 from .models import Board, UserArticle
 from comment.serializers import CommentSerializer
+from django.utils import timezone
+
 
 from django.utils import timezone
 from common.custom_exception import CustomException
@@ -46,6 +48,7 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
         return article
 
 class ArticleSerializer(serializers.ModelSerializer):
+    board_id = serializers.IntegerField() #전체 게시글 열람 기능을 위함
     title = serializers.CharField()
     text = serializers.CharField()
     user_nickname = serializers.SerializerMethodField()
@@ -60,7 +63,8 @@ class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = (
-            'id', 
+            'id',
+            'board_id',
             'title', 
             'text', 
             'user_nickname', 
@@ -72,7 +76,9 @@ class ArticleSerializer(serializers.ModelSerializer):
             'created_at', 
             'f_created_at',
         )
-    
+    def board_id(self, obj):
+        return obj.board.id
+
     def get_user_nickname(self, obj):
         return obj.writer.nickname
 
@@ -99,6 +105,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     def get_f_created_at(self, obj):
         local_created_at = timezone.localtime(obj.created_at)
         return time_formatting(local_created_at)
+
 
 class ArticleWithCommentSerializer(ArticleSerializer):
     comments = serializers.SerializerMethodField()
