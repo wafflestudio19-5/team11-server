@@ -201,7 +201,7 @@ class UserArticleLikeView(UserArticleView):
                         data={
                             "like": UserArticle.objects.filter(article=article, like=True).count(),
                             "detail": "이 글을 공감하였습니다."
-                        }
+                            }
                         )
 
 
@@ -211,5 +211,5 @@ class UserArticleScrapView(UserArticleView):
                         data={
                             "scrap": UserArticle.objects.filter(article=article, scrap=True).count(),
                             "detail": "이 글을 스크랩하였습니다." if scrap else "스크랩을 취소하였습니다."
-                        }
+                            }
                         )

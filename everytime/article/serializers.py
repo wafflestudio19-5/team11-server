@@ -4,8 +4,6 @@ from article.models import Article
 from comment.models import Comment
 from .models import Board, UserArticle
 from comment.serializers import CommentSerializer
-from django.utils import timezone
-
 
 from django.utils import timezone
 from common.custom_exception import CustomException
@@ -145,14 +143,13 @@ class UserArticleSerializer(serializers.ModelSerializer):
                 return {'scrap' : True}
             return {}
         else:
-            if action == 'article_like':
+            if action == 'article_like' and self.instance.like == True:
                 raise CustomException("이미 공감한 글입니다.", status.HTTP_400_BAD_REQUEST)
             elif action == 'article_scrap':
                 return {'scrap' : not self.instance.scrap} # scrap과 unscrap 구현
             return {}
 
     def create(self, validated_data):
-
         article_id = self.context['view'].kwargs['article_id']
         validated_data['article'] = Article.objects.get(id = article_id)
         validated_data['user'] = self.context['request'].user
