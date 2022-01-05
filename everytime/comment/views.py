@@ -1,8 +1,10 @@
 from re import U
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
+from django.db.models import Q
+
 from rest_framework import serializers, status, viewsets, permissions
-from rest_framework.decorators import action
+from rest_framework.decorators import action, parser_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -46,6 +48,28 @@ class CommentViewSet(viewsets.GenericViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_match", "detail" : "해당 게시글의 댓글이 아닙니다."})
 
         #serializer = CommentSerializer(comment) 
+        # 1. 원댓글 with no 대댓글
+        # 바로 삭제
+        #has_subcomments = lambda c: x * x
+        has_subcomments = Comment.objects.filter(Q(parent=comment)&~Q(id=comment.id)).exists()
+         # 1. 대댓글 - 바로삭제
+        if comment.is_subcomment:
+            print("대댓글")
+            # 원댓글이 삭제 상태일 시, 
+            #if comment.parent.is_active == False and : 
+
+        # 2. 원댓글 with no 대댓글 - 바로 삭제
+        elif has_subcomments:
+            print("원댓글 with no 대댓글")
+        # 3. 원댓글 with 대댓글 - writer=NULL text->삭제된 댓글입니다.
+        elif not has_subcomments:
+            print("원댓글 with 대댓글")
+
+        
+        # text = 삭제된 댓글입니다.
+
+        # 3. 대댓글 
+        # 바로 삭제
 
         return Response(status=status.HTTP_200_OK, data={"success" : True})
     

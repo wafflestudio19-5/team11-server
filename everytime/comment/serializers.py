@@ -79,6 +79,7 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_like_count(self, obj):
         return UserComment.objects.filter(comment = obj, like = True).count()
 
+
 class UserCommentSerializer(serializers.ModelSerializer):
     like = serializers.BooleanField(required=False)
     comment_id = serializers.IntegerField(required=False)
