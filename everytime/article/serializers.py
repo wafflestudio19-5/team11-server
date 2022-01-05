@@ -111,10 +111,10 @@ class ArticleSerializer(serializers.ModelSerializer):
         return time_formatting(local_created_at)
     
     def get_has_scraped(self, obj):
-        return bool(UserArticle.objects.filter(user=self.context['request'].user, scrap=True, article=obj))
+        return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, scrap=True, article=obj))
     
     def get_has_liked(self, obj):
-        return bool(UserArticle.objects.filter(user=self.context['request'].user, like=True, article=obj))
+        return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, like=True, article=obj))
 
 
 class ArticleWithCommentSerializer(ArticleSerializer):

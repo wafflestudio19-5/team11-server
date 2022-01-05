@@ -78,6 +78,7 @@ INSTALLED_APPS = [
 
     'django.contrib.sites',
     'rest_framework',
+    'django_extensions',
 
     'allauth',
     'allauth.account',

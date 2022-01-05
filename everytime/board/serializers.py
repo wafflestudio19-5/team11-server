@@ -69,7 +69,7 @@ class BoardSerializer(serializers.ModelSerializer):
         #print(self.context['request'].user, "??")
         if self.context['request'].user.is_anonymous:
             return False
-        return bool(UserBoard.objects.filter(user=self.context['request'].user, favorite=True, board=obj))
+        return bool(UserBoard.objects.get_or_none(user=self.context['request'].user, favorite=True, board=obj))
         
 class BoardNameSerializer(BoardSerializer):
     university = serializers.SerializerMethodField()
@@ -92,7 +92,7 @@ class BoardGetSeriallizer(serializers.ModelSerializer):
     def get_favorite(self, obj):
         if self.context['request'].user.is_anonymous:
             return False
-        return bool(UserBoard.objects.filter(user=self.context['request'].user, favorite=True, board=obj))
+        return bool(UserBoard.objects.get_or_none(user=self.context['request'].user, favorite=True, board=obj))
 
 # Article list로 대체
 # class BoardListSeriallizer(serializers.Serializer):
