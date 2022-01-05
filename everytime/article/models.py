@@ -18,3 +18,8 @@ class UserArticle(BaseModel):
     article = models.ForeignKey(Article, on_delete=models.SET_NULL, related_name='user_article', null = True)
     like = models.BooleanField(default = False, null = False)
     scrap = models.BooleanField(default = False, null = False)
+
+class ImageArticle(BaseModel):
+    image = models.ImageField(null = True)
+    description = models.CharField(max_length=5000, null = True)
+    article = models.ForeignKey(Article, on_delete=models.SET_NULL, related_name='image_article', null = True)
