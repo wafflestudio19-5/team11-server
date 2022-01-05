@@ -34,7 +34,7 @@ class ImageArticleSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('image','text')
 
 class ArticleCreateSerializer(serializers.ModelSerializer):
-    texts = serializers.ListField() # list 받아오기 가능...
+    texts = serializers.ListField(required = False) # list 받아오기 가능...
     title = serializers.CharField(required = True)
     text = serializers.CharField(required = True)
     is_anonymous = serializers.BooleanField(required=True)
@@ -53,13 +53,13 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
         images = self.context.get('view').request.FILES
         validated_data['writer'] = self.context['request'].user
         board_id = validated_data['board']
-        texts = validated_data['texts']
+        
         validated_data['board'] = Board.objects.get(id = board_id)
-        validated_data.pop('texts')
 
         with transaction.atomic():
             article = Article.objects.create(**validated_data)
-            if texts:
+            if 'texts' in validated_data:
+                texts = validated_data.pop('texts')
                 i = 0
                 for image in images.values():
                     ImageArticle.objects.create(article = article, image = image, description = texts[i]["text"])
