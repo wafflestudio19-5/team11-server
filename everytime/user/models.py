@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin, UserManager
 from django.utils import timezone
+from user.utils import upload_image
 
 from university.models import University
 from department.models import Department
@@ -56,6 +57,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(default=timezone.now)
     name = models.CharField(max_length=30, blank = False)
+    profile_image = models.ImageField(upload_to = upload_image, editable = True, null = True)
 
     # 해당 필드에 대한 설명은 부모 AbstractBaseUser 클래스 참고
     EMAIL_FIELD = 'email'

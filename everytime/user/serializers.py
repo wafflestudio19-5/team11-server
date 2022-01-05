@@ -34,7 +34,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'password',
             'university',
             'admission_year',
-            'is_active'
+            'is_active',
+            'profile_image'
         )
 
     def validate(self, data):
