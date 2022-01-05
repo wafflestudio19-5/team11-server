@@ -21,6 +21,11 @@ class ArticleViewSet(viewsets.GenericViewSet):
    
     #POST /board/{board_id}/article/
     def create(self, request, board_id):
+        
+        print(request.data)
+        print(request.data["texts"])
+        print(type(request.data["texts"]))
+        print(len(request.data["texts"]))
 
         if not (board := Board.objects.get_or_none(id=board_id)):
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_board_id", "detail" : "게시판이 존재하지 않습니다."})
@@ -29,6 +34,7 @@ class ArticleViewSet(viewsets.GenericViewSet):
         data['board'] = board_id
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
+
         article = serializer.save()
 
         return Response(status=status.HTTP_200_OK, data={"success" : True, "article_id" : article.id})

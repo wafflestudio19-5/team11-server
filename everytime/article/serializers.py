@@ -66,7 +66,7 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
             if texts:
                 i = 0
                 for image in images.values():
-                    ImageArticle.objects.create(article = article, image = image, description = texts[i])
+                    ImageArticle.objects.create(article = article, image = image, description = texts[i]["text"])
                     i += 1
             return article
 
