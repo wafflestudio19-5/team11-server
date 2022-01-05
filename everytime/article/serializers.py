@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from rest_framework import serializers, status
 from article.models import Article
 from comment.models import Comment
-from .models import Board, UserArticle
+from .models import Board, ImageArticle, UserArticle
 from comment.serializers import CommentSerializer
 
 from django.utils import timezone
@@ -22,8 +22,16 @@ def time_formatting(timezone_obj):
         diff_years = int(diff.days/365)
         return f"{diff_years}년 전"
 
+class ImageArticleSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ImageArticle
+        fields = ('image', 'text')
+
 class ArticleCreateSerializer(serializers.ModelSerializer):
 
+    texts = serializers.ListField(
+        serializers.CharField()
+    )
     title = serializers.CharField(required = True)
     text = serializers.CharField(required = True)
     is_anonymous = serializers.BooleanField(required=True)
@@ -32,17 +40,21 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Article
-        fields = '__all__'
+        fields = '__all__' + ('texts', )
 
     def validate(self, data):
 
         return data
 
     def create(self, validated_data):
+        images = self.context.get('view').request.FILES
         validated_data['writer'] = self.context['request'].user
         board_id = validated_data['board']
+        texts = validated_data['texts']
         validated_data['board'] = Board.objects.get(id = board_id)
         article = Article.objects.create(**validated_data)
+        for i in range(len(images.values())):
+            ImageArticle.objects.create(article = article, image = images.values()[i], description = texts[i])
         return article
 
 class ArticleSerializer(serializers.ModelSerializer):
