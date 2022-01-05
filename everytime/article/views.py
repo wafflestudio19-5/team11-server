@@ -114,7 +114,7 @@ class ArticleViewSet(viewsets.GenericViewSet):
             required_likes = {'hot': 5, 'best': 50}
             if interest in required_likes:
                 for article in queryset_:
-                    if UserArticle.objects.filter(article=article, like=True).count() >= required_likes[feature]:
+                    if UserArticle.objects.filter(article=article, like=True).count() >= required_likes[interest]:
                         queryset.append(article)
             else:
                 queryset = queryset_
