@@ -97,6 +97,8 @@ class ArticleViewSet(viewsets.GenericViewSet):
         return queryset
 
     def get_queryset_search(self, search, queryset):
+        if search == "":
+            return []
         if search:
             queryset_, queryset = queryset, []
             search = set(search.split(' '))

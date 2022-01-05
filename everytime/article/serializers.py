@@ -59,6 +59,8 @@ class ArticleSerializer(serializers.ModelSerializer):
     image_count = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
     f_created_at = serializers.SerializerMethodField()
+    has_scraped = serializers.SerializerMethodField()
+    has_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Article
@@ -75,6 +77,8 @@ class ArticleSerializer(serializers.ModelSerializer):
             'image_count',
             'created_at', 
             'f_created_at',
+            "has_scraped",
+            "has_liked",
         )
     def board_id(self, obj):
         return obj.board.id
@@ -105,6 +109,12 @@ class ArticleSerializer(serializers.ModelSerializer):
     def get_f_created_at(self, obj):
         local_created_at = timezone.localtime(obj.created_at)
         return time_formatting(local_created_at)
+    
+    def get_has_scraped(self, obj):
+        return bool(UserArticle.objects.filter(user=self.context['request'].user, scrap=True, article=obj))
+    
+    def get_has_liked(self, obj):
+        return bool(UserArticle.objects.filter(user=self.context['request'].user, like=True, article=obj))
 
 
 class ArticleWithCommentSerializer(ArticleSerializer):
