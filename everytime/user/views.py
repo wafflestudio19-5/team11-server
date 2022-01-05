@@ -21,7 +21,7 @@ class UserSignUpView(APIView):
     serializer_class = UserCreateSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         print(request.data)
         try:
@@ -40,7 +40,7 @@ class UserLoginView(APIView):
 
     def post(self, request):
         # 기본 login 시도
-        serializer = self.get_serializer(data=request.data)
+        serializer = UserLoginSerializer(data=request.data)
         try :
             serializer.is_valid(raise_exception=True)
             token = serializer.validated_data['token']
