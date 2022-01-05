@@ -1,12 +1,15 @@
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from rest_framework import serializers, status
+from django.db import transaction
+from django.utils import timezone
+
 from article.models import Article
 from comment.models import Comment
 from .models import Board, ImageArticle, UserArticle
 from comment.serializers import CommentSerializer
 
-from django.utils import timezone
 from common.custom_exception import CustomException
+
 
 import logging
 logger = logging.getLogger('django')
@@ -57,13 +60,15 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
         texts = validated_data['texts']
         validated_data['board'] = Board.objects.get(id = board_id)
         validated_data.pop('texts')
-        article = Article.objects.create(**validated_data)
-        if texts:
-            i = 0
-            for image in images.values():
-                ImageArticle.objects.create(article = article, image = image, description = texts[i])
-                i += 1
-        return article
+
+        with transaction.atomic():
+            article = Article.objects.create(**validated_data)
+            if texts:
+                i = 0
+                for image in images.values():
+                    ImageArticle.objects.create(article = article, image = image, description = texts[i])
+                    i += 1
+            return article
 
 class ArticleSerializer(serializers.ModelSerializer):
     board_id = serializers.IntegerField() #전체 게시글 열람 기능을 위함
