@@ -90,5 +90,5 @@ class UserBoardViewSet(viewsets.GenericViewSet):
         else:
             UserBoard.objects.create(user=request.user, board=board)
 
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK, data={"board": board.id, "favorite": user_board.favorite})
 
