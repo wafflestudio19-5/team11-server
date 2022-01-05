@@ -50,20 +50,20 @@ class CommentViewSet(viewsets.GenericViewSet):
         #serializer = CommentSerializer(comment) 
         # 1. 원댓글 with no 대댓글
         # 바로 삭제
-        #has_subcomments = lambda c: x * x
+        #has_subcomments = lambda c: Comment.objects.filter(Q(parent=c)&~Q(id=c.id)).exists()
         has_subcomments = Comment.objects.filter(Q(parent=comment)&~Q(id=comment.id)).exists()
-         # 1. 대댓글 - 바로삭제
-        if comment.is_subcomment:
-            print("대댓글")
-            # 원댓글이 삭제 상태일 시, 
-            #if comment.parent.is_active == False and : 
+        #  # 1. 대댓글 - 바로삭제
+        # if comment.is_subcomment:
+        #     print("대댓글")
+        #     # 원댓글이 삭제 상태일 시, 
+        #     #if comment.parent.is_active == False and : 
 
-        # 2. 원댓글 with no 대댓글 - 바로 삭제
-        elif has_subcomments:
-            print("원댓글 with no 대댓글")
-        # 3. 원댓글 with 대댓글 - writer=NULL text->삭제된 댓글입니다.
-        elif not has_subcomments:
-            print("원댓글 with 대댓글")
+        # # 2. 원댓글 with no 대댓글 - 바로 삭제
+        # elif has_subcomments:
+        #     print("원댓글 with no 대댓글")
+        # # 3. 원댓글 with 대댓글 - writer=NULL text->삭제된 댓글입니다.
+        # elif not has_subcomments:
+        #     print("원댓글 with 대댓글")
 
         
         # text = 삭제된 댓글입니다.

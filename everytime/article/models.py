@@ -6,7 +6,7 @@ from common.models import BaseModel
 
 class Article(BaseModel):
     title = models.CharField(max_length=100, null = False)
-    board = models.ForeignKey(Board, on_delete=models.SET_NULL, related_name='articles', null = True)
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='articles', null = True)
     writer = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='articles', null = True)
     text = models.CharField(max_length=5000, null = False)
     created_at = models.DateTimeField(auto_now_add=True)
