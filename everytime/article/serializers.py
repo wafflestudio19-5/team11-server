@@ -33,7 +33,7 @@ class ImageArticleSerializer(serializers.HyperlinkedModelSerializer):
 class ArticleCreateSerializer(serializers.ModelSerializer):
 
     texts = serializers.ListField(
-        serializers.CharField()
+        child = serializers.CharField()
     )
     title = serializers.CharField(required = True)
     text = serializers.CharField(required = True)
