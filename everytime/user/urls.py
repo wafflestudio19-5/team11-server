@@ -21,7 +21,7 @@ urlpatterns = [
     path('', include(router.urls), name='auth-user'),
     path('', include(router1.urls), name = 'update'),
     path('register/check_id/', UserCheckIDView.as_view(), name = 'check_id'),
-    path('registr/check_email/', UserCheckEmailView.as_view(), name = 'check_email'),
+    path('register/check_email/', UserCheckEmailView.as_view(), name = 'check_email'),
     path('register/check_nickname/', UserCheckUsernameView.as_view(), name = 'check_nickname'),
 
     path('register/kakao/', KakaoUserSignUpView.as_view(), name='kakaosignup'),
