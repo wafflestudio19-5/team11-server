@@ -80,10 +80,10 @@ class FireBaseUserLoginSerializer(serializers.Serializer):
             decoded_token = auth.verify_id_token(access_token)
             uid = decoded_token['uid']
         except Exception:
-            raise serializers.ValidationError("카카오 계정이 존재하지 않습니다")
+            raise serializers.ValidationError("FireBase 계정이 존재하지 않습니다")
 
         if not SocialAccount.objects.filter(uid=uid, provider="fire"):
-            raise serializers.ValidationError("카카오 계정이 존재하지 않습니다")
+            raise serializers.ValidationError("FireBase 계정이 존재하지 않습니다")
 
         socialAccount = SocialAccount.objects.get(uid=uid, provider="fire")
         user = socialAccount.user
