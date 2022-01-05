@@ -56,9 +56,13 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
         board_id = validated_data['board']
         texts = validated_data['texts']
         validated_data['board'] = Board.objects.get(id = board_id)
+        validated_data.pop('texts')
         article = Article.objects.create(**validated_data)
-        for i in range(len(images.values())):
-            ImageArticle.objects.create(article = article, image = images.values()[i], description = texts[i])
+        if texts:
+            i = 0
+            for image in images.values():
+                ImageArticle.objects.create(article = article, image = image, description = texts[i])
+                i += 1
         return article
 
 class ArticleSerializer(serializers.ModelSerializer):
