@@ -22,3 +22,8 @@ class Board(BaseModel):
     type = models.PositiveSmallIntegerField(choices=BoardType.choices, default=BoardType.GEN)
     description = models.CharField(max_length=100, default="")
     allow_anonymous = models.BooleanField(null=False, default=True)
+    
+class UserBoard(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='user_board', null=True)
+    board = models.ForeignKey(Board, on_delete=models.SET_NULL, related_name='user_board', null=True)
+    favorite = models.BooleanField(default=True)
