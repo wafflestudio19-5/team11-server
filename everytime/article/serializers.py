@@ -8,6 +8,9 @@ from comment.serializers import CommentSerializer
 from django.utils import timezone
 from common.custom_exception import CustomException
 
+import logging
+logger = logging.getLogger('django')
+
 # 시간 비교 - https://jsikim1.tistory.com/144
 def time_formatting(timezone_obj):
     diff = timezone.localtime() - timezone_obj
@@ -40,7 +43,8 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Article
-        fields = '__all__' + ('texts', )
+        fields = '__all__'
+        extra_fields = ['texts']
 
     def validate(self, data):
 
