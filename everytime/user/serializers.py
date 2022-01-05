@@ -66,7 +66,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
         university_name = validated_data.pop('university')
         university = University.objects.get(name = university_name)
         name = validated_data.pop('name')
-        user = User.objects.create_user(user_id = user_id, nickname = nickname, email = email, password = password, university = university, admission_year = admission_year, name = name)
+        profile_image = validated_data.get('profile_image')
+        user = User.objects.create_user(user_id = user_id, nickname = nickname, email = email, password = password, university = university, admission_year = admission_year, name = name, profile_image = profile_image)
         return user, jwt_token_of(user)
 
 class UserLoginSerializer(serializers.Serializer):
