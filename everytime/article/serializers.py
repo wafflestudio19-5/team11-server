@@ -40,7 +40,7 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Article
-        fields = '__all__'
+        fields = '__all__' + ('texts', )
 
     def validate(self, data):
 
