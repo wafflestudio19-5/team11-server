@@ -18,9 +18,10 @@ logger = logging.getLogger('django')
 # Create your views here.
 class UserSignUpView(APIView):
     permission_classes = (permissions.AllowAny, )
+    serializer_class = UserCreateSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = UserCreateSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         print(request.data)
         try:
@@ -35,10 +36,11 @@ class UserSignUpView(APIView):
 
 class UserLoginView(APIView):
     permission_classes = (permissions.AllowAny, )
+    serializer_class = UserLoginSerializer
 
     def post(self, request):
         # 기본 login 시도
-        serializer = UserLoginSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         try :
             serializer.is_valid(raise_exception=True)
             token = serializer.validated_data['token']
