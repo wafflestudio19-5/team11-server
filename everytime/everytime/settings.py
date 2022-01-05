@@ -14,6 +14,15 @@ import datetime
 import os
 from pathlib import Path
 
+#firebase
+import firebase_admin
+from firebase_admin import credentials
+try:
+    cred = credentials.Certificate("everytime/toyproject-ad13a-firebase-adminsdk-70acc-937886288c.json")
+    firebase_admin.initialize_app(cred)
+except FileNotFoundError:
+    pass
+
 SITE_ID=1
 
 import json
