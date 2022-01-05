@@ -13,10 +13,11 @@ class BoardSerializer(serializers.ModelSerializer):
     description = serializers.CharField(allow_blank=True)
     allow_anonymous = serializers.BooleanField()
     is_mine = serializers.SerializerMethodField(read_only=True)
+    favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = Board
-        fields = ('id', 'name', 'university', 'type', 'description', 'allow_anonymous', 'is_mine')
+        fields = ('id', 'name', 'university', 'type', 'description', 'allow_anonymous', 'is_mine', 'favorite')
 
     def get_is_mine(self, obj):
         return obj.manager == self.context['request'].user
@@ -60,7 +61,12 @@ class BoardSerializer(serializers.ModelSerializer):
             raise PermissionDenied('권한이 없습니다.')
 
         super().update(instance, validated_data)
-
+    
+    def get_favorite(self, obj):
+        #print(self.context['request'].user, "??")
+        if self.context['request'].user.is_anonymous:
+            return False
+        return bool(UserBoard.objects.filter(user=self.context['request'].user, favorite=True, board=obj))
         
 class BoardNameSerializer(BoardSerializer):
     university = serializers.SerializerMethodField()
@@ -74,10 +80,16 @@ class BoardGetSeriallizer(serializers.ModelSerializer):
     name = serializers.CharField()
     type = serializers.ChoiceField(choices=Board.BoardType.choices)
     description = serializers.CharField()
+    favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = Board
-        fields = ('id', 'name', 'type', 'description',)
+        fields = ('id', 'name', 'type', 'description', 'favorite')
+        
+    def get_favorite(self, obj):
+        if self.context['request'].user.is_anonymous:
+            return False
+        return bool(UserBoard.objects.filter(user=self.context['request'].user, favorite=True, board=obj))
 
 # Article list로 대체
 # class BoardListSeriallizer(serializers.Serializer):
