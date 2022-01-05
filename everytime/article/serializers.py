@@ -31,13 +31,10 @@ def time_formatting(timezone_obj):
 class ImageArticleSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ImageArticle
-        fields = ('image', 'text')
+        fields = ('image','text')
 
 class ArticleCreateSerializer(serializers.ModelSerializer):
-
-    texts = serializers.ListField(
-        child = serializers.CharField()
-    )
+    texts = serializers.ListField() # list 받아오기 가능...
     title = serializers.CharField(required = True)
     text = serializers.CharField(required = True)
     is_anonymous = serializers.BooleanField(required=True)
@@ -50,7 +47,6 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
         extra_fields = ['texts']
 
     def validate(self, data):
-
         return data
 
     def create(self, validated_data):
