@@ -6,6 +6,9 @@ from .models import Board
 from university.models import University
 from article.serializers import *
 from common.custom_exception import CustomException
+
+from .models import UserBoard
+
 class BoardSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     university = serializers.CharField(required=False)
