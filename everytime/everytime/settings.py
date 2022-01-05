@@ -105,6 +105,7 @@ if "TEAM11_SERVER_ENV" in os.environ :
 
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     MEDIA_ROOT = os.path.join(BASE_DIR, '/images/')
+    MEDIA_URL = '/images/'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
