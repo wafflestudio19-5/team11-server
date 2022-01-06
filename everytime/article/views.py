@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from operator import itemgetter, attrgetter, methodcaller
 from django.db.models.query import QuerySet
-
+from datetime import datetime, timedelta
 from .serializers import *
 from university.models import University
 from board.models import Board
@@ -110,7 +110,20 @@ class ArticleViewSet(viewsets.GenericViewSet):
         return queryset
 
     def get_queryset_interest(self, interest, queryset):
-        if interest:
+        if interest == 'live':
+            queryset_, queryset = queryset, []
+            for article in queryset_:
+                delta = (datetime.now() - article.created_at.replace(tzinfo=None))
+                if delta <= timedelta(days=1):
+                    queryset.append((article,
+                                     UserArticle.objects.filter(article=article, like=True).count(),
+                                     Comment.objects.filter(article=article).count()))
+
+            queryset_ = sorted(queryset, key=lambda x: x[1]+x[2], reverse=True)
+            queryset.clear()
+            for query in queryset_:
+                queryset.append(query[0])
+        elif interest:
             queryset_, queryset = queryset, []
             required_likes = {'hot': 5, 'best': 50}
             if interest in required_likes:

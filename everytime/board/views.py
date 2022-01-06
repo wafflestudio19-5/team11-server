@@ -93,3 +93,27 @@ class UserBoardViewSet(viewsets.GenericViewSet):
 
         return Response(status=status.HTTP_200_OK, data={"board": board.id, "favorite": user_board.favorite})
 
+    # GET /board_favorite/
+    # GET /board_favorite/?search=[keyword]
+    def list(self, request):
+
+        query = request.query_params
+        keyword = query.get('search')
+        id_only = query.get('id_only')
+
+        boards = Board.objects.filter(user_board__user=request.user, user_board__favorite=True)
+
+        if keyword is not None:
+            boards = boards.filter(name__icontains=keyword)
+
+        if len(boards) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND,
+                            data={"error": "result_not_found", "detail": "검색 결과가 없습니다."})
+
+        if id_only:
+            return Response(status=status.HTTP_200_OK,
+                            data={"boards": sorted(boards.values_list('id', flat=True))})
+
+        return Response(status=status.HTTP_200_OK, data={
+            "boards": BoardGetSeriallizer(boards, many=True, context={'request': request}).data})
+
