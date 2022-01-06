@@ -18,6 +18,7 @@ logger = logging.getLogger('django')
 # Create your views here.
 class UserSignUpView(APIView):
     permission_classes = (permissions.AllowAny, )
+    serializer_class = UserCreateSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = UserCreateSerializer(data=request.data)
@@ -35,6 +36,7 @@ class UserSignUpView(APIView):
 
 class UserLoginView(APIView):
     permission_classes = (permissions.AllowAny, )
+    serializer_class = UserLoginSerializer
 
     def post(self, request):
         # 기본 login 시도

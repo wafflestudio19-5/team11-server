@@ -8,6 +8,7 @@ app_name = 'board'
 
 router = SimpleRouter()
 router.register('board', BoardViewSet, basename='board')  # /api/v1/seminar/
+router.register('board_favorite', UserBoardViewSet, basename='board_user')
 
 urlpatterns = [
     path('', include(router.urls))

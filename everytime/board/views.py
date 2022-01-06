@@ -23,13 +23,13 @@ class BoardViewSet(viewsets.GenericViewSet):
         
         if keyword == None:
             boards = Board.objects.all()
-            return Response(status=status.HTTP_200_OK, data={ "boards" : BoardGetSeriallizer(boards, many = True).data})
+            return Response(status=status.HTTP_200_OK, data={ "boards" : BoardGetSeriallizer(boards, many = True, context={'request': request}).data})
         else:
             filtered_boards = Board.objects.filter(name__icontains = keyword)
             if len(filtered_boards) == 0:
                 return Response(status = status.HTTP_404_NOT_FOUND, data = { "error" : "result_not_found", "detail" : "검색 결과가 없습니다."})
             
-            return Response(status=status.HTTP_200_OK, data={ "boards" : BoardGetSeriallizer(filtered_boards, many = True).data})
+            return Response(status=status.HTTP_200_OK, data={ "boards" : BoardGetSeriallizer(filtered_boards, many = True, context={'request': request}).data})
 
     # POST /board/
     def create(self, request):
@@ -63,13 +63,33 @@ class BoardViewSet(viewsets.GenericViewSet):
     # DELETE /board/ 
     def destroy(self, request, pk):
 
-        if not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED, data = {"error" : "wrong_user", "detail" : "관리자만 접근 가능합니다."})
 
         if not (board := Board.objects.get_or_none(id=pk)):
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_id", "detail" : "게시판이 존재하지 않습니다."})
 
+        if not request.user.is_superuser and request.user != board.manager :
+            return Response(status=status.HTTP_401_UNAUTHORIZED, data = {"error" : "wrong_user", "detail" : "게시판 관리자만 접근 가능합니다."})
+
         board = Board.objects.get(id =pk)
         board.delete()
         return Response(status=status.HTTP_200_OK, data={"success" : True})
+
+class UserBoardViewSet(viewsets.GenericViewSet):
+    serializer_class = BoardSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+    # PUT /board_favorite/{board_id}/
+    def update(self, request, pk):
+        if not (board := Board.objects.get_or_none(id=pk)):
+            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "게시판이 존재하지 않습니다."})
+
+        user_board = UserBoard.objects.get_or_none(user=request.user, board=board)
+
+        if user_board:
+            user_board.favorite = not user_board.favorite
+            user_board.save()
+        else:
+            UserBoard.objects.create(user=request.user, board=board)
+
+        return Response(status=status.HTTP_200_OK, data={"board": board.id, "favorite": user_board.favorite})
 
