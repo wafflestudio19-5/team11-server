@@ -94,7 +94,7 @@ class UserBoardViewSet(viewsets.GenericViewSet):
             user_board.favorite = not user_board.favorite
             user_board.save()
         else:
-            UserBoard.objects.create(user=request.user, board=board)
+            user_board = UserBoard.objects.create(user=request.user, board=board)
 
         return Response(status=status.HTTP_200_OK, data={"board": board.id, "favorite": user_board.favorite})
 
