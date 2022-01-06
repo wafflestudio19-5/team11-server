@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 from .views import *
 from .views_kakao import *
+from .views_fire import *
 
 
 router = SimpleRouter()
@@ -27,4 +28,7 @@ urlpatterns = [
     path('register/kakao/', KakaoUserSignUpView.as_view(), name='kakaosignup'),
     path('login/kakao/', KakaoUserLoginView.as_view(), name='kakaologin'),
     path('register/oauth/', GetKakaoAccessCode.as_view(), name= 'access_code'),
+
+    path('register/fire/', FireBaseUserSignUpView.as_view(), name='firesignup'),
+    path('login/fire/', FireBaseUserLoginView.as_view(), name='firelogin'),
 ]
