@@ -4,6 +4,8 @@ from comment.models import Comment, UserComment
 from article.models import Article
 
 from django.utils import timezone
+from common.custom_exception import CustomException
+
 class CommentCreateSerializer(serializers.ModelSerializer):
 
     parent = serializers.IntegerField()
@@ -77,24 +79,26 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_like_count(self, obj):
         return UserComment.objects.filter(comment = obj, like = True).count()
 
-class UserCommentCreateSerializer(serializers.ModelSerializer):
-    like = serializers.BooleanField()
-    comment_id = serializers.IntegerField(required=True)
+
+class UserCommentSerializer(serializers.ModelSerializer):
+    like = serializers.BooleanField(required=False)
+    comment_id = serializers.IntegerField(required=False)
 
     class Meta:
         model = UserComment
-        fields = (
-            'id',
-            'like',
-            'comment_id'
-        )
+        fields = ('id', 'like',)
 
     def validate(self, data):
-        return data
+        if self.instance == None:
+            return {'like' : True}
+        else:
+            if self.instance.like == True:
+                raise CustomException("이미 공감한 댓글입니다.", status.HTTP_400_BAD_REQUEST)
+            return {}
 
     def create(self, validated_data):
-        comment_id = validated_data.pop('comment_id')
+        comment_id = self.context['view'].kwargs['comment_id']
         validated_data['comment'] = Comment.objects.get(id = comment_id)
         validated_data['user'] = self.context['request'].user
-        user_article = UserComment.objects.create(**validated_data)
-        return user_article
+        user_comment = UserComment.objects.create(**validated_data)
+        return user_comment

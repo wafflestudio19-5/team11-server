@@ -1,14 +1,18 @@
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from rest_framework import serializers, status
+from django.db import transaction
+from django.utils import timezone
+
 from article.models import Article
 from comment.models import Comment
-from .models import Board, UserArticle
+from .models import Board, ImageArticle, UserArticle
 from comment.serializers import CommentSerializer
-from django.utils import timezone
 
-
-from django.utils import timezone
 from common.custom_exception import CustomException
+
+
+import logging
+logger = logging.getLogger('django')
 
 # 시간 비교 - https://jsikim1.tistory.com/144
 def time_formatting(timezone_obj):
@@ -24,8 +28,13 @@ def time_formatting(timezone_obj):
         diff_years = int(diff.days/365)
         return f"{diff_years}년 전"
 
-class ArticleCreateSerializer(serializers.ModelSerializer):
+class ImageArticleSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ImageArticle
+        fields = ('image','text')
 
+class ArticleCreateSerializer(serializers.ModelSerializer):
+    texts = serializers.ListField(required = False) # list 받아오기 가능...
     title = serializers.CharField(required = True)
     text = serializers.CharField(required = True)
     is_anonymous = serializers.BooleanField(required=True)
@@ -35,17 +44,27 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = '__all__'
+        extra_fields = ['texts']
 
     def validate(self, data):
-
         return data
 
     def create(self, validated_data):
+        images = self.context.get('view').request.FILES
         validated_data['writer'] = self.context['request'].user
         board_id = validated_data['board']
+        
         validated_data['board'] = Board.objects.get(id = board_id)
-        article = Article.objects.create(**validated_data)
-        return article
+
+        with transaction.atomic():
+            article = Article.objects.create(**validated_data)
+            if 'texts' in validated_data:
+                texts = validated_data.pop('texts')
+                i = 0
+                for image in images.values():
+                    ImageArticle.objects.create(article = article, image = image, description = texts[i]["text"])
+                    i += 1
+            return article
 
 class ArticleSerializer(serializers.ModelSerializer):
     board_id = serializers.IntegerField() #전체 게시글 열람 기능을 위함
@@ -59,6 +78,8 @@ class ArticleSerializer(serializers.ModelSerializer):
     image_count = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
     f_created_at = serializers.SerializerMethodField()
+    has_scraped = serializers.SerializerMethodField()
+    has_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Article
@@ -75,6 +96,8 @@ class ArticleSerializer(serializers.ModelSerializer):
             'image_count',
             'created_at', 
             'f_created_at',
+            "has_scraped",
+            "has_liked",
         )
     def board_id(self, obj):
         return obj.board.id
@@ -105,6 +128,12 @@ class ArticleSerializer(serializers.ModelSerializer):
     def get_f_created_at(self, obj):
         local_created_at = timezone.localtime(obj.created_at)
         return time_formatting(local_created_at)
+    
+    def get_has_scraped(self, obj):
+        return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, scrap=True, article=obj))
+    
+    def get_has_liked(self, obj):
+        return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, like=True, article=obj))
 
 
 class ArticleWithCommentSerializer(ArticleSerializer):
@@ -135,14 +164,13 @@ class UserArticleSerializer(serializers.ModelSerializer):
                 return {'scrap' : True}
             return {}
         else:
-            if action == 'article_like':
+            if action == 'article_like' and self.instance.like == True:
                 raise CustomException("이미 공감한 글입니다.", status.HTTP_400_BAD_REQUEST)
             elif action == 'article_scrap':
                 return {'scrap' : not self.instance.scrap} # scrap과 unscrap 구현
             return {}
 
     def create(self, validated_data):
-
         article_id = self.context['view'].kwargs['article_id']
         validated_data['article'] = Article.objects.get(id = article_id)
         validated_data['user'] = self.context['request'].user

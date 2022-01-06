@@ -21,7 +21,7 @@ class ArticleViewSet(viewsets.GenericViewSet):
    
     #POST /board/{board_id}/article/
     def create(self, request, board_id):
-
+        
         if not (board := Board.objects.get_or_none(id=board_id)):
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_board_id", "detail" : "게시판이 존재하지 않습니다."})
 
@@ -29,6 +29,7 @@ class ArticleViewSet(viewsets.GenericViewSet):
         data['board'] = board_id
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
+
         article = serializer.save()
 
         return Response(status=status.HTTP_200_OK, data={"success" : True, "article_id" : article.id})
@@ -97,6 +98,8 @@ class ArticleViewSet(viewsets.GenericViewSet):
         return queryset
 
     def get_queryset_search(self, search, queryset):
+        if search == "":
+            return []
         if search:
             queryset_, queryset = queryset, []
             search = set(search.split(' '))
@@ -112,7 +115,7 @@ class ArticleViewSet(viewsets.GenericViewSet):
             required_likes = {'hot': 5, 'best': 50}
             if interest in required_likes:
                 for article in queryset_:
-                    if UserArticle.objects.filter(article=article, like=True).count() >= required_likes[feature]:
+                    if UserArticle.objects.filter(article=article, like=True).count() >= required_likes[interest]:
                         queryset.append(article)
             else:
                 queryset = queryset_
@@ -199,7 +202,7 @@ class UserArticleLikeView(UserArticleView):
                         data={
                             "like": UserArticle.objects.filter(article=article, like=True).count(),
                             "detail": "이 글을 공감하였습니다."
-                        }
+                            }
                         )
 
 
@@ -209,5 +212,5 @@ class UserArticleScrapView(UserArticleView):
                         data={
                             "scrap": UserArticle.objects.filter(article=article, scrap=True).count(),
                             "detail": "이 글을 스크랩하였습니다." if scrap else "스크랩을 취소하였습니다."
-                        }
+                            }
                         )
