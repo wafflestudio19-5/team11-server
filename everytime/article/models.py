@@ -24,4 +24,4 @@ class UserArticle(BaseModel):
 class ImageArticle(BaseModel):
     image = models.ImageField(upload_to = upload_image, editable = False, null = False)
     description = models.CharField(max_length=5000, null = True)
-    article = models.ForeignKey(Article, on_delete=models.SET_NULL, related_name='image_article', null = True)
+    article = models.ForeignKey(Article, on_delete=models.SET_NULL, related_name='images', null = True)

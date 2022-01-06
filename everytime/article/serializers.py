@@ -50,20 +50,23 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        images = self.context.get('view').request.FILES
+
+        image_list = self.context.get('view').request.FILES
         validated_data['writer'] = self.context['request'].user
         board_id = validated_data['board']
         
         validated_data['board'] = Board.objects.get(id = board_id)
 
         with transaction.atomic():
-            article = Article.objects.create(**validated_data)
             if 'texts' in validated_data:
                 texts = validated_data.pop('texts')
-                i = 0
-                for image in images.values():
-                    ImageArticle.objects.create(article = article, image = image, description = texts[i]["text"])
-                    i += 1
+            article = Article.objects.create(**validated_data)
+            i = 0
+            # https://donis-note.medium.com/django-rest-framework-%EB%8B%A4%EC%A4%91-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%A9%EB%B2%95-38c99d26258
+            # https://www.postman.com/postman/workspace/postman-answers/request/9215231-82d960a6-ece0-42ee-88d4-eef19805860d
+            for image_data in image_list.getlist('image'):
+                ImageArticle.objects.create(article = article, image = image_data, description = texts[i])
+                i += 1
             return article
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -81,6 +84,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     f_created_at = serializers.SerializerMethodField()
     has_scraped = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
 
     class Meta:
         model = Article
@@ -98,8 +102,9 @@ class ArticleSerializer(serializers.ModelSerializer):
             'image_count',
             'created_at', 
             'f_created_at',
-            "has_scraped",
-            "has_liked",
+            'has_scraped',
+            'has_liked',
+            'images',
         )
 
     def get_board_name(self, obj):
@@ -124,7 +129,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         return Comment.objects.filter(article = obj).count()
 
     def get_image_count(self, obj):
-        return 0
+        return ImageArticle.objects.filter(article = obj).count()
 
     def get_created_at(self, obj):
         return timezone.localtime(obj.created_at).strftime("%m/%d %H:%M")
@@ -141,6 +146,9 @@ class ArticleSerializer(serializers.ModelSerializer):
     def get_has_liked(self, obj):
         return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, like=True, article=obj))
 
+    def get_images(self, obj):
+        images = ImageArticle.objects.filter(article = obj)
+        return ImageArticleSerializer(images, many = True).data
 
 class ArticleWithCommentSerializer(ArticleSerializer):
     comments = serializers.SerializerMethodField()
@@ -182,3 +190,8 @@ class UserArticleSerializer(serializers.ModelSerializer):
         validated_data['user'] = self.context['request'].user
         user_article = UserArticle.objects.create(**validated_data)
         return user_article
+
+class ImageArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImageArticle
+        fields = ('image', 'description')
