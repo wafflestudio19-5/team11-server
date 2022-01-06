@@ -71,14 +71,6 @@ class BoardSerializer(serializers.ModelSerializer):
             return False
         return bool(UserBoard.objects.get_or_none(user=self.context['request'].user, favorite=True, board=obj))
         
-class BoardNameSerializer(BoardSerializer):
-    university = serializers.SerializerMethodField()
-    class Meta(BoardSerializer.Meta):
-        pass
-    
-    def get_university(self, board):
-        return board.university.name
-
 class BoardGetSeriallizer(serializers.ModelSerializer):
     name = serializers.CharField()
     type = serializers.ChoiceField(choices=Board.BoardType.choices)
