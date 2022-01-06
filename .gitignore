@@ -1,5 +1,6 @@
 # deploy only
 everytime/everytime/secret.json
+everytime/everytime/secret_firebase.json
 everytime/everytime/settings_server.py
 
 # custom

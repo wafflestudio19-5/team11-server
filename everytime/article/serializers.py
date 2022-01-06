@@ -68,6 +68,7 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
 
 class ArticleSerializer(serializers.ModelSerializer):
     board_id = serializers.IntegerField() #전체 게시글 열람 기능을 위함
+    board_name = serializers.SerializerMethodField()
     title = serializers.CharField()
     text = serializers.CharField()
     user_nickname = serializers.SerializerMethodField()
@@ -86,6 +87,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'board_id',
+            'board_name',
             'title', 
             'text', 
             'user_nickname', 
@@ -99,11 +101,15 @@ class ArticleSerializer(serializers.ModelSerializer):
             "has_scraped",
             "has_liked",
         )
-    def board_id(self, obj):
-        return obj.board.id
+
+    def get_board_name(self, obj):
+        return obj.board.name
 
     def get_user_nickname(self, obj):
-        return obj.writer.nickname
+        if obj.is_anonymous == True:
+            return '익명'
+        else:
+            return obj.writer.nickname
 
     def get_is_mine(self, obj):
         return obj.writer == self.context['request'].user

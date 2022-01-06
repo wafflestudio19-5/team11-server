@@ -66,16 +66,19 @@ class UserViewSet(viewsets.GenericViewSet):
 
     def list(self, request, pk=None):
         user = request.user
-        return Response(
-            {
-                "user_id" : user.user_id,
-                "name" : user.name,
-                "email" : user.email,
-                "admission_year" : user.admission_year,
-                "nickname" : user.nickname,
-                "university" : user.university.name
-            }
-            ,status=status.HTTP_200_OK)
+        
+        serializer = UserCreateSerializer(user, context={'request': request})
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        # return Response(
+        #     {
+        #         "user_id" : user.user_id,
+        #         "name" : user.name,
+        #         "email" : user.email,
+        #         "admission_year" : user.admission_year,
+        #         "nickname" : user.nickname,
+        #         "university" : user.university.name
+        #     }
+        #     ,status=status.HTTP_200_OK)
 
 class UserDeleteViewset(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
@@ -199,5 +202,24 @@ class UserUpdatePasswordView(viewsets.GenericViewSet):
         return Response({"success" : True}, status = status.HTTP_200_OK)
 
     def list(self, request, pk=None):
-        password = request.data.get('password')
-        return Response({"detail" : password}, status = status.HTTP_200_OK)
+        return Response({"detail" : "password"}, status = status.HTTP_200_OK)
+
+class UserUpdateProfileImageView(viewsets.GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated, )
+    serializer_class = UserCreateSerializer
+    def put(self, request, pk = None):
+        user = request.user
+        data = request.data.copy()
+        if data.get('profile_image') == None:
+            return Response({"error" : "프로필 이미지를 첨부하세요."}, status = status.HTTP_404_NOT_FOUND)
+        
+        serializer = self.get_serializer(user, data=data, partial = True)
+        try:
+            serializer.is_valid(raise_exception = True)
+            serializer.update(user, serializer.validated_data)
+        except:
+            return Response({"success" : False, "detail" : "이미지 업로드 과정에서 오류가 발생했습니다."}, status= status.HTTP_400_BAD_REQUEST)
+        return Response({"success" : True}, status = status.HTTP_200_OK)
+
+    def list(self, request, pk=None):
+        return Response({"detail" : "profile_image"}, status = status.HTTP_200_OK)

@@ -23,6 +23,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     university = serializers.CharField(required = True)
     user_id = serializers.CharField(required=True)
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User

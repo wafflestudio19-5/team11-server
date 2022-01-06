@@ -13,6 +13,7 @@ router1 = SimpleRouter()
 router1.register('my/email', UserUpdateEmailView, basename='my_email')
 router1.register('my/nickname', UserUpdateNicknameView, basename='my_nickname')
 router1.register('my/password', UserUpdatePasswordView, basename = 'my_password')
+router1.register('my/profile_image', UserUpdateProfileImageView, basename = 'my_profileimage')
 router1.register('my', UserViewSet, basename = 'my')
 router1.register('my/withdrawal', UserDeleteViewset, basename = 'my_withdrawal')
 

@@ -2,6 +2,7 @@ from re import U
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.db.models import Q
+from django.db import transaction
 
 from rest_framework import serializers, status, viewsets, permissions
 from rest_framework.decorators import action, parser_classes
@@ -47,29 +48,32 @@ class CommentViewSet(viewsets.GenericViewSet):
         if comment.article != article:
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_match", "detail" : "해당 게시글의 댓글이 아닙니다."})
 
-        #serializer = CommentSerializer(comment) 
-        # 1. 원댓글 with no 대댓글
-        # 바로 삭제
-        #has_subcomments = lambda c: Comment.objects.filter(Q(parent=c)&~Q(id=c.id)).exists()
-        has_subcomments = Comment.objects.filter(Q(parent=comment)&~Q(id=comment.id)).exists()
-        #  # 1. 대댓글 - 바로삭제
-        # if comment.is_subcomment:
-        #     print("대댓글")
-        #     # 원댓글이 삭제 상태일 시, 
-        #     #if comment.parent.is_active == False and : 
-
-        # # 2. 원댓글 with no 대댓글 - 바로 삭제
-        # elif has_subcomments:
-        #     print("원댓글 with no 대댓글")
-        # # 3. 원댓글 with 대댓글 - writer=NULL text->삭제된 댓글입니다.
-        # elif not has_subcomments:
-        #     print("원댓글 with 대댓글")
-
+        has_subcomments = lambda c: Comment.objects.filter(Q(parent=c)&~Q(id=c.id)).exists()
+        #has_subcomments = Comment.objects.filter(Q(parent=comment)&~Q(id=comment.id)).exists()
         
-        # text = 삭제된 댓글입니다.
+        with transaction.atomic():
+            # 1. 대댓글 - 바로삭제
+            if comment.is_subcomment:
+                print("대댓글")
+                parent = comment.parent
+                comment.delete()
+                # 원댓글이 "삭제 상태 & subcomment가 없음" -> 삭제
+                if parent.is_active == False and not has_subcomments(parent) :
+                    parent.delete()
 
-        # 3. 대댓글 
-        # 바로 삭제
+            # 2. 원댓글 with no 대댓글 - 바로 삭제
+            elif not has_subcomments(comment):
+                print("원댓글 with no 대댓글")
+                comment.delete()
+
+            # 3. 원댓글 with 대댓글 - is_active=False, writer=NULL, text->삭제된 댓글입니다.
+            elif has_subcomments(comment):
+                print("원댓글 with 대댓글")
+                comment.is_active = False
+                comment.commenter = None
+                comment.text = "삭제된 댓글입니다."
+                comment.save()
+
 
         return Response(status=status.HTTP_200_OK, data={"success" : True})
     
@@ -83,7 +87,6 @@ class CommentViewSet(viewsets.GenericViewSet):
 
 class UserCommentLikeView(viewsets.GenericViewSet):
     serializer_class = UserCommentSerializer
-    permission_classes = (permissions.AllowAny,)
 
     def create(self, request, comment_id):
         comment = Comment.objects.get_or_none(id=comment_id)
@@ -105,6 +108,6 @@ class UserCommentLikeView(viewsets.GenericViewSet):
         return Response(status=status.HTTP_200_OK,
                         data={
                             "like": UserComment.objects.filter(comment = comment, like = True).count(),
-                            "detail": "이 글을 공감하였습니다."
+                            "detail": "이 댓글을 공감하였습니다."
                             }
                         )
