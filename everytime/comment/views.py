@@ -83,7 +83,6 @@ class CommentViewSet(viewsets.GenericViewSet):
 
 class UserCommentLikeView(viewsets.GenericViewSet):
     serializer_class = UserCommentSerializer
-    permission_classes = (permissions.AllowAny,)
 
     def create(self, request, comment_id):
         comment = Comment.objects.get_or_none(id=comment_id)
@@ -105,6 +104,6 @@ class UserCommentLikeView(viewsets.GenericViewSet):
         return Response(status=status.HTTP_200_OK,
                         data={
                             "like": UserComment.objects.filter(comment = comment, like = True).count(),
-                            "detail": "이 글을 공감하였습니다."
+                            "detail": "이 댓글을 공감하였습니다."
                             }
                         )

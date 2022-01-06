@@ -72,7 +72,10 @@ class CommentSerializer(serializers.ModelSerializer):
     
     def get_user_nickname(self, obj):
         if obj.is_anonymous is True:
-            return '익명(글쓴이)'
+            if obj.is_writer is True:
+                return '익명(글쓴이)'
+            else:
+                return '익명'
         else:
             return obj.commenter.nickname
     
@@ -82,7 +85,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class UserCommentSerializer(serializers.ModelSerializer):
     like = serializers.BooleanField(required=False)
-    comment_id = serializers.IntegerField(required=False)
+    #comment_id = serializers.IntegerField(required=False)
 
     class Meta:
         model = UserComment
