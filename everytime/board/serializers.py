@@ -66,12 +66,14 @@ class BoardSerializer(serializers.ModelSerializer):
         super().update(instance, validated_data)
     
     def get_favorite(self, obj):
-        #print(self.context['request'].user, "??")
         if self.context['request'].user.is_anonymous:
             return False
-        return bool(UserBoard.objects.get_or_none(user=self.context['request'].user, favorite=True, board=obj))
+        userboard = UserBoard.objects.get_or_none(user=self.context['request'].user, board=obj)
+        if not userboard:
+            return obj.type == 0
+        return userboard.favorite
         
-class BoardGetSeriallizer(serializers.ModelSerializer):
+class BoardGetSeriallizer(BoardSerializer):
     name = serializers.CharField()
     type = serializers.ChoiceField(choices=Board.BoardType.choices)
     description = serializers.CharField()
@@ -80,11 +82,6 @@ class BoardGetSeriallizer(serializers.ModelSerializer):
     class Meta:
         model = Board
         fields = ('id', 'name', 'type', 'description', 'favorite')
-        
-    def get_favorite(self, obj):
-        if self.context['request'].user.is_anonymous:
-            return False
-        return bool(UserBoard.objects.get_or_none(user=self.context['request'].user, favorite=True, board=obj))
 
 # Article list로 대체
 # class BoardListSeriallizer(serializers.Serializer):
