@@ -84,10 +84,13 @@ class CommentSerializer(serializers.ModelSerializer):
                 return '익명'
         else:
             return obj.commenter.nickname
-    
+
     def get_user_image(self, obj):
-        if self.get_user_nickname(obj) == obj.commenter.nickname and obj.commenter.profile_image:
-            return obj.commenter.profile_image.url
+        if obj.commenter != None and obj.commenter.is_active == True:
+            if obj.is_anonymous == False and obj.commenter.profile_image:
+                return obj.commenter.profile_image.url
+            else:
+                 return ""
         else:
             return ""
     

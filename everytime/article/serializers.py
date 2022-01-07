@@ -121,8 +121,11 @@ class ArticleSerializer(serializers.ModelSerializer):
             return obj.writer.nickname
     
     def get_user_image(self, obj):
-        if self.get_user_nickname(obj) == obj.writer.nickname and obj.writer.profile_image:
-            return obj.writer.profile_image.url
+        if obj.writer != None and obj.writer.is_active == True:
+            if obj.is_anonymous == False and obj.writer.profile_image:
+                return obj.writer.profile_image.url
+            else:
+                 return ""
         else:
             return ""
 

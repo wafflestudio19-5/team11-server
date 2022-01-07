@@ -1,6 +1,8 @@
 from re import U
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
+from django.db.models import Q
+
 from rest_framework import serializers, status, viewsets, permissions
 from rest_framework.decorators import action, permission_classes
 from rest_framework.views import APIView
@@ -13,6 +15,9 @@ from university.models import University
 from board.models import Board
 #from .models import Article
 import requests
+
+import logging
+logger = logging.getLogger('django')
 
 # Create your views here.
 class ArticleViewSet(viewsets.GenericViewSet):
@@ -74,14 +79,26 @@ class ArticleViewSet(viewsets.GenericViewSet):
 
         queryset = self.get_queryset().filter(board_id=board_id).order_by('-id')
 
-        # 검색 기능
+        # # 검색 기능
+        # search = self.request.query_params.get('search', None)
+        # queryset = self.get_queryset_search(search, queryset)
+
+        # # Hot 게시물, Best 게시물
+        # interest = self.request.query_params.get('interest', None)
+        # queryset = self.get_queryset_interest(interest, queryset)
+
         search = self.request.query_params.get('search', None)
-        queryset = self.get_queryset_search(search, queryset)
-
-        # Hot 게시물, Best 게시물
         interest = self.request.query_params.get('interest', None)
-        queryset = self.get_queryset_interest(interest, queryset)
 
+        # 검색 기능
+        if search:
+            queryset = self.get_queryset_search(search, queryset)
+        # Hot 게시물, Best 게시물
+        elif interest:
+            queryset = self.get_queryset_interest(interest, queryset)
+        elif interest and search:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail" : "wrong query parameter"})
+        
         return self.paginate(request, queryset)
 
     def paginate(self, request, queryset):
@@ -101,13 +118,22 @@ class ArticleViewSet(viewsets.GenericViewSet):
         if search == "":
             return []
         if search:
-            queryset_, queryset = queryset, []
-            search = set(search.split(' '))
-            for article in queryset_:
-                article_words = set((article.title+" "+article.text).split(' '))
-                if search.issubset(article_words):
-                    queryset.append(article)
-        return queryset
+            q = Q()
+            #return queryset.filter(q)
+            keywords = set(search.split(' '))
+            for k in keywords:
+               q &= Q(title__icontains=k)|Q(text__icontains=k)
+            queryset = queryset.filter(q)
+        return queryset.distinct()
+            
+        # if search:
+        #     queryset_, queryset = queryset, []
+        #     search = set(search.split(' '))
+        #     for article in queryset_:
+        #         article_words = set((article.title+" "+article.text).split(' '))
+        #         if search.issubset(article_words):
+        #             queryset.append(article)
+        # return queryset
 
     def get_queryset_interest(self, interest, queryset):
         if interest == 'live':
