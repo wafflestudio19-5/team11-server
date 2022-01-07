@@ -25,11 +25,14 @@ class BoardViewSet(viewsets.GenericViewSet):
         keyword = query.get('search')
         type = query.get('type')
 
-        #keyword 검색
-        if keyword == None:
+        try:
+            boards = Board.objects.filter(university=request.user.university)
+        except:
             boards = Board.objects.all()
-        else:
-            boards = Board.objects.filter(name__icontains=keyword)
+
+        #keyword 검색
+        if keyword != None:
+            boards = boards.filter(name__icontains=keyword)
 
         #게시판 type
         if type:
@@ -115,10 +118,12 @@ class UserBoardViewSet(viewsets.GenericViewSet):
         type = query.get('type')
 
         #UserBoard의 favorite이 True
-        boards1 = Board.objects.filter(user_board__user=request.user, user_board__favorite=True)
+        boards1 = Board.objects.filter(user_board__user=request.user, user_board__favorite=True,
+                                       university=request.user.university)
         #Board의 type이 0
-        boards2 = Board.objects.filter(user_board__user=request.user)
-        boards2 = boards2.exclude(id__in=Board.objects.filter(user_board__user=request.user))
+        boards2 = Board.objects.filter(type=0, university=request.user.university)
+        boards2 = boards2.exclude(id__in=Board.objects.filter(user_board__user=request.user,
+                                                              university=request.user.university))
 
         boards = boards1 | boards2
 
