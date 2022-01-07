@@ -111,6 +111,8 @@ class ArticleSerializer(serializers.ModelSerializer):
         return obj.board.name
 
     def get_user_nickname(self, obj):
+        if obj.writer == None or obj.writer.is_active == False:
+            return '(알수없음)'
         if obj.is_anonymous == True:
             return '익명'
         else:

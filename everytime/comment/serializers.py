@@ -71,6 +71,8 @@ class CommentSerializer(serializers.ModelSerializer):
         return timezone.localtime(obj.created_at).strftime('%m/%d %H:%M')
     
     def get_user_nickname(self, obj):
+        if obj.commenter == None or obj.commenter.is_active == False:
+            return '(알수없음)'
         if obj.is_active == False:
             return "(삭제)"
         if obj.is_anonymous is True:
