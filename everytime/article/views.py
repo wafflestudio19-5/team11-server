@@ -68,10 +68,11 @@ class ArticleViewSet(viewsets.GenericViewSet):
 
         if article.board != board:
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_match", "detail" : "해당 게시판의 게시글이 아닙니다."})
-        article.delete()
 
         if article.is_question and Comment.objects.filter(Q(article=article) & ~Q(article=article, commenter=request.user)):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "wrong_match", "detail": "댓글이 달린 질문글은 삭제가 불가능합니다. "})
+        
+        article.delete()
 
         return Response(status=status.HTTP_200_OK, data={"success" : True})
 
