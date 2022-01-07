@@ -75,6 +75,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     title = serializers.CharField()
     text = serializers.CharField()
     user_nickname = serializers.SerializerMethodField()
+    user_image = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     scrap_count = serializers.SerializerMethodField()
@@ -95,6 +96,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'title', 
             'text', 
             'user_nickname', 
+            'user_image',
             'is_mine',
             'like_count', 
             'scrap_count',
@@ -117,6 +119,12 @@ class ArticleSerializer(serializers.ModelSerializer):
             return '익명'
         else:
             return obj.writer.nickname
+    
+    def get_user_image(self, obj):
+        if self.get_user_nickname(obj) == obj.writer.nickname and obj.writer.profile_image:
+            return obj.writer.profile_image.url
+        else:
+            return ""
 
     def get_is_mine(self, obj):
         return obj.writer == self.context['request'].user
