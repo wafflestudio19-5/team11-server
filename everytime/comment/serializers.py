@@ -48,6 +48,7 @@ class CommentSerializer(serializers.ModelSerializer):
     is_mine = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
     user_nickname = serializers.SerializerMethodField()
+    user_image = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -61,7 +62,8 @@ class CommentSerializer(serializers.ModelSerializer):
             'created_at',
             'like_count',
             'is_writer',
-            'user_nickname',
+            'user_nickname', 
+            'user_image',
         )
 
     def get_is_mine(self, obj):
@@ -82,6 +84,10 @@ class CommentSerializer(serializers.ModelSerializer):
                 return '익명'
         else:
             return obj.commenter.nickname
+    
+    def get_user_image(self, obj):
+        if self.get_user_nickname(obj) == obj.commenter.nickname:
+            return obj.commenter.profile_image
     
     def get_like_count(self, obj):
         return UserComment.objects.filter(comment = obj, like = True).count()
