@@ -32,10 +32,11 @@ class BoardViewSet(viewsets.GenericViewSet):
             boards = Board.objects.filter(name__icontains=keyword)
 
         #게시판 type
-        try:
-            boards = boards.filter(type=type)
-        except:
-            pass
+        if type:
+            try:
+                boards = boards.filter(type=type)
+            except:
+                pass
 
         if len(boards) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND,
@@ -124,10 +125,11 @@ class UserBoardViewSet(viewsets.GenericViewSet):
         if keyword is not None:
             boards = boards.filter(name__icontains=keyword)
 
-        try:
-            boards = boards.filter(type=type)
-        except:
-            pass
+        if type:
+            try:
+                boards = boards.filter(type=type)
+            except:
+                pass
 
         if len(boards) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND,
