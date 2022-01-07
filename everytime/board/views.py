@@ -23,19 +23,25 @@ class BoardViewSet(viewsets.GenericViewSet):
     def list(self, request):
         query = request.query_params
         keyword = query.get('search')
+        type = query.get('type')
 
+        #keyword 검색
         if keyword == None:
             boards = Board.objects.all()
-            return Response(status=status.HTTP_200_OK,
-                            data={"boards": BoardGetSeriallizer(boards, many=True, context={'request': request}).data})
         else:
-            filtered_boards = Board.objects.filter(name__icontains=keyword)
-            if len(filtered_boards) == 0:
-                return Response(status=status.HTTP_404_NOT_FOUND,
+            boards = Board.objects.filter(name__icontains=keyword)
+
+        #게시판 type
+        try:
+            boards = boards.filter(type=type)
+        except:
+            pass
+
+        if len(boards) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND,
                                 data={"error": "result_not_found", "detail": "검색 결과가 없습니다."})
 
-            return Response(status=status.HTTP_200_OK, data={
-                "boards": BoardGetSeriallizer(filtered_boards, many=True, context={'request': request}).data})
+        return Response(status=status.HTTP_200_OK, data={"boards": BoardGetSeriallizer(boards, many=True, context={'request': request}).data})
 
     # POST /board/
     def create(self, request):
@@ -94,7 +100,7 @@ class UserBoardViewSet(viewsets.GenericViewSet):
             user_board.favorite = not user_board.favorite
             user_board.save()
         else:
-            user_board = UserBoard.objects.create(user=request.user, board=board)
+            user_board = UserBoard.objects.create(user=request.user, board=board, favorite=board.type is not 0)
 
         return Response(status=status.HTTP_200_OK, data={"board": board.id, "favorite": user_board.favorite})
 
@@ -105,11 +111,23 @@ class UserBoardViewSet(viewsets.GenericViewSet):
         query = request.query_params
         keyword = query.get('search')
         id_only = query.get('id_only')
+        type = query.get('type')
 
-        boards = Board.objects.filter(user_board__user=request.user, user_board__favorite=True)
+        #UserBoard의 favorite이 True
+        boards1 = Board.objects.filter(user_board__user=request.user, user_board__favorite=True)
+        #Board의 type이 0
+        boards2 = Board.objects.filter(user_board__user=request.user)
+        boards2 = boards2.exclude(id__in=Board.objects.filter(user_board__user=request.user))
+
+        boards = boards1 | boards2
 
         if keyword is not None:
             boards = boards.filter(name__icontains=keyword)
+
+        try:
+            boards = boards.filter(type=type)
+        except:
+            pass
 
         if len(boards) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND,
