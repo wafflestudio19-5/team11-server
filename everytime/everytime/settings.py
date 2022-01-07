@@ -18,7 +18,7 @@ from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials
 try:
-    cred = credentials.Certificate("everytime/toyproject-ad13a-firebase-adminsdk-70acc-937886288c.json")
+    cred = credentials.Certificate("everytime/secret_firebase.json")
     firebase_admin.initialize_app(cred)
 except FileNotFoundError:
     pass
