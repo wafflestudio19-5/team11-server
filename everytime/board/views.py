@@ -1,6 +1,6 @@
 from re import U
 
-import django.db.models
+from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from rest_framework import serializers, status, viewsets, permissions
@@ -118,14 +118,16 @@ class UserBoardViewSet(viewsets.GenericViewSet):
         type = query.get('type')
 
         #UserBoard의 favorite이 True
-        boards1 = Board.objects.filter(user_board__user=request.user, user_board__favorite=True,
-                                       university=request.user.university)
+        q1 = Q(user_board__user=request.user, user_board__favorite=True,
+                                        university=request.user.university)
         #Board의 type이 0
-        boards2 = Board.objects.filter(type=0, university=request.user.university)
-        boards2 = boards2.exclude(id__in=Board.objects.filter(user_board__user=request.user,
-                                                              university=request.user.university))
+        q2 = Q(type=0, university=request.user.university) & \
+            ~Q(user_board__user=request.user, user_board__favorite=False,
+                                        university=request.user.university)
 
-        boards = boards1 | boards2
+        # query 부를때, or로 하면 겹치는 값이 생김
+        # .distinct()로 해결
+        boards = Board.objects.filter(q1|q2).distinct()
 
         if keyword is not None:
             boards = boards.filter(name__icontains=keyword)

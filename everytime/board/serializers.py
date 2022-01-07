@@ -77,11 +77,10 @@ class BoardGetSeriallizer(BoardSerializer):
     name = serializers.CharField()
     type = serializers.ChoiceField(choices=Board.BoardType.choices)
     description = serializers.CharField()
-    favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = Board
-        fields = ('id', 'name', 'type', 'description', 'favorite')
+        fields = ('id', 'name', 'type', 'description', 'favorite', 'university')
 
 # Article list로 대체
 # class BoardListSeriallizer(serializers.Serializer):
