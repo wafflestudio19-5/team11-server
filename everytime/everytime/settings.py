@@ -283,3 +283,5 @@ if "TEAM11_SERVER_ENV" in os.environ :
             },
         },
     }
+
+SESSION_COOKIE_DOMAIN = '.wafl.shop'

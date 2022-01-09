@@ -16,8 +16,8 @@ class Comment(BaseModel):
     is_anonymous = models.BooleanField(default=True, null = False)
     is_active = models.BooleanField(default=True, null = False)
 
-    # Serializer field only
-    #is_mine True,
+    def __str__(self):
+        return self.text
 
 class UserComment(BaseModel):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='user_comment', null = True)

@@ -15,6 +15,9 @@ class Article(BaseModel):
     is_anonymous = models.BooleanField(default=True)
     is_question = models.BooleanField(default=False)
 
+    def __str__(self):
+        return "[" + str(self.id) + "] : " + self.title + " / " + self.text[0:20] + " ..."
+
 class UserArticle(BaseModel):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='user_article', null = True)
     article = models.ForeignKey(Article, on_delete=models.SET_NULL, related_name='user_article', null = True)
