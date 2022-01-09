@@ -68,6 +68,10 @@ class ArticleViewSet(viewsets.GenericViewSet):
 
         if article.board != board:
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_match", "detail" : "해당 게시판의 게시글이 아닙니다."})
+
+        if article.is_question and Comment.objects.filter(Q(article=article) & ~Q(article=article, commenter=request.user)):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "wrong_match", "detail": "댓글이 달린 질문글은 삭제가 불가능합니다. "})
+        
         article.delete()
 
         return Response(status=status.HTTP_200_OK, data={"success" : True})
@@ -136,6 +140,11 @@ class ArticleViewSet(viewsets.GenericViewSet):
         # return queryset
 
     def get_queryset_interest(self, interest, queryset):
+        if interest == 'question':
+            queryset_, queryset = queryset, []
+            for article in queryset_:
+                if article.is_question:
+                    queryset.append(article)
         if interest == 'live':
             queryset_, queryset = queryset, []
             for article in queryset_:
@@ -172,12 +181,24 @@ class ArticleViewSet_My_All(ArticleViewSet):
                             data={"error": "wrong_board_id", "detail": "게시판이 존재하지 않습니다."})
 
         # 검색 기능
-        search = self.request.query_params.get('search', None)
-        queryset = self.get_queryset_search(search, queryset)
+        #search = self.request.query_params.get('search', None)
+        #queryset = self.get_queryset_search(search, queryset)
 
         # Hot 게시물, Best 게시물
+        #interest = self.request.query_params.get('interest', None)
+        #queryset = self.get_queryset_interest(interest, queryset)
+
+        search = self.request.query_params.get('search', None)
         interest = self.request.query_params.get('interest', None)
-        queryset = self.get_queryset_interest(interest, queryset)
+
+        # 검색 기능
+        if search:
+            queryset = self.get_queryset_search(search, queryset)
+        # Hot 게시물, Best 게시물
+        elif interest:
+            queryset = self.get_queryset_interest(interest, queryset)
+        elif interest and search:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail": "wrong query parameter"})
 
         return self.paginate(request, queryset)
 

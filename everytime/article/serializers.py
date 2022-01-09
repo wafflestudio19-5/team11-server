@@ -86,6 +86,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     has_scraped = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
+    is_question = serializers.BooleanField()
 
     class Meta:
         model = Article
@@ -98,6 +99,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'user_nickname', 
             'user_image',
             'is_mine',
+            "is_question",
             'like_count', 
             'scrap_count',
             'comment_count', 
