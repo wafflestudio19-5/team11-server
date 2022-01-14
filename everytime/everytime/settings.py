@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'user.apps.UserConfig',
     'lecture.apps.LectureConfig',
     'review.apps.ReviewConfig',
+    'information.apps.InformationConfig',
 
     'board.apps.BoardConfig',
     'article.apps.ArticleConfig',
