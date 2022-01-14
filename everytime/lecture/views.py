@@ -36,7 +36,7 @@ class SubjectProfessorDetailViewSet(viewsets.GenericViewSet):
         page = self.paginate_queryset(lectures)
 
         if page is not None:
-            serializer = LectureViewSerializer(page, many=True)
+            serializer = LectureViewSerializer_Mini(page, many=True)
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
