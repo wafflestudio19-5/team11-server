@@ -12,7 +12,6 @@ from .serializers import *
 from university.models import University
 from .models import Lecture
 
-
 class SubjectProfessorViewSet(viewsets.GenericViewSet):
     serializer_class = LectureSerializer
     permission_classes = (permissions.AllowAny,)  # 테스트용 임시
@@ -26,7 +25,21 @@ class SubjectProfessorViewSet(viewsets.GenericViewSet):
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
+        
+class SubjectProfessorDetailViewSet(viewsets.GenericViewSet):
+    serializer_class = LectureSerializer
+    permission_classes = (permissions.AllowAny,)  # 테스트용 임시
 
+    # GET /subject_professor/{subject_professor_id}/lecture/
+    def list(self, request, subject_professor_id):
+        lectures = Lecture.objects.filter(subject_professor_id=subject_professor_id)
+        page = self.paginate_queryset(lectures)
+
+        if page is not None:
+            serializer = LectureViewSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
 
 class LectureViewSet(viewsets.GenericViewSet):
     serializer_class = LectureSerializer
