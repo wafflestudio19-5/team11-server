@@ -1,4 +1,0 @@
-CREATE USER 'team11_db_user'@'%' IDENTIFIED BY '[password]';
-GRANT ALL PRIVILEGES ON *.* TO 'team11_db_user'@'%' WITH GRANT OPTION;
-GRANT ALL PRIVILEGES ON team11_db.* TO 'team11_db_user'@'%' WITH GRANT OPTION;
-CREATE DATABASE team11_db;
