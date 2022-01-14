@@ -10,13 +10,13 @@ from common.custom_exception import CustomException
 
 
 class SubjectProfessorSerializer(serializers.ModelSerializer):
-
+    id = serializers.IntegerField()
     subject_name = serializers.CharField()
     professor = serializers.CharField(allow_null=True)
 
     class Meta:
         model = SubjectProfessor
-        fields = ('subject_name', 'professor')
+        fields = ('id', 'subject_name', 'professor')
 
 
     def validate(self, data):
