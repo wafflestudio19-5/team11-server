@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'department.apps.DepartmentConfig',
     'user.apps.UserConfig',
     'lecture.apps.LectureConfig',
+    'review.apps.ReviewConfig',
 
     'board.apps.BoardConfig',
     'article.apps.ArticleConfig',

@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/v1/', include('article.urls')),
     path('api/v1/', include('comment.urls')),
     path('api/v1/', include('lecture.urls')),
+    path('api/v1/', include('review.urls'))
 ]
 
 urlpatterns +=[path('api-auth/', include('rest_framework.urls')), ]
