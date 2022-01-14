@@ -80,6 +80,7 @@ class LectureSerializer(serializers.ModelSerializer):
 
 
 class LectureViewSerializer(LectureSerializer):
+    id = serializers.IntegerField()
     subject_name = serializers.SerializerMethodField()
     professor = serializers.SerializerMethodField()
     ####
@@ -88,6 +89,10 @@ class LectureViewSerializer(LectureSerializer):
     level = serializers.SerializerMethodField()
     category = serializers.SerializerMethodField()
     ####
+
+    class Meta:
+        model = Lecture
+        fields = '__all__'
 
     def get_subject_name(self, obj):
         return obj.subject_professor.subject_name
@@ -106,4 +111,7 @@ class LectureViewSerializer(LectureSerializer):
 
 
 
-
+class LectureViewSerializer_Mini(LectureViewSerializer):
+    class Meta:
+        model = Lecture
+        fields = ('id', 'year', 'season')
