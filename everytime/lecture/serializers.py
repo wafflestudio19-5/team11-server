@@ -6,6 +6,7 @@ from .models import Lecture, SubjectProfessor
 from university.models import University
 from article.serializers import *
 from common.custom_exception import CustomException
+from review.models import *
 
 
 
@@ -13,10 +14,11 @@ class SubjectProfessorSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     subject_name = serializers.CharField()
     professor = serializers.CharField(allow_null=True)
+    review = serializers.SerializerMethodField()
 
     class Meta:
         model = SubjectProfessor
-        fields = ('id', 'subject_name', 'professor')
+        fields = ('id', 'subject_name', 'professor', 'review')
 
 
     def validate(self, data):
@@ -25,6 +27,29 @@ class SubjectProfessorSerializer(serializers.ModelSerializer):
         # create 시의 logic
         return data
 
+    def get_review(self, obj):
+        summary = {"homework": [0, 0, 0],
+                   "team_activity": [0, 0, 0],
+                   "grading": [0, 0, 0],
+                   "attendance": [0, 0, 0, 0, 0],
+                   "test_count": [0, 0, 0, 0, 0]}
+
+        rating, length = 0, len(Review.objects.filter(lecture__subject_professor=obj))
+
+        if not length:
+            return "강의평 없음"
+
+        for review in Review.objects.filter(lecture__subject_professor=obj):
+            for field in summary:
+                summary[field][review.__getattribute__(field)] += 1
+            rating += review.rating
+        rating /= length
+
+        data = {}
+        for field in summary:
+            data[field] = summary[field].index(max(summary[field]))
+        data['rating'] = rating
+        return data
 
 
 class LectureSerializer(serializers.ModelSerializer):

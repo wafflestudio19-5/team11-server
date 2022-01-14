@@ -18,13 +18,20 @@ class SubjectProfessorViewSet(viewsets.GenericViewSet):
 
     # GET /subject_professor/
     def list(self, request):
-        subject_professors = SubjectProfessor.objects.all()
+        subject_professors = SubjectProfessor.objects.filter(professor__isnull=False)
         page = self.paginate_queryset(subject_professors)
         if page is not None:
             serializer = SubjectProfessorSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
+
+    def retrieve(self, request, pk):
+        if not (subject_professor := SubjectProfessor.objects.get_or_none(id=pk)):
+            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "SubjectProfessor가 존재하지 않습니다."})
+
+        serializer = SubjectProfessorSerializer(subject_professor, context={'request': request})
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
         
 class SubjectProfessorDetailViewSet(viewsets.GenericViewSet):
     serializer_class = LectureSerializer
@@ -32,11 +39,12 @@ class SubjectProfessorDetailViewSet(viewsets.GenericViewSet):
 
     # GET /subject_professor/{subject_professor_id}/lecture/
     def list(self, request, subject_professor_id):
+        #queryset = request.query_params
         lectures = Lecture.objects.filter(subject_professor_id=subject_professor_id)
         page = self.paginate_queryset(lectures)
 
         if page is not None:
-            serializer = LectureViewSerializer_Mini(page, many=True)
+            serializer = LectureViewSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
