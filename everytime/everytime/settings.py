@@ -18,7 +18,7 @@ from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials
 try:
-    cred = credentials.Certificate("everytime/toyproject-ad13a-firebase-adminsdk-70acc-937886288c.json")
+    cred = credentials.Certificate("everytime/secret_firebase.json")
     firebase_admin.initialize_app(cred)
 except FileNotFoundError:
     pass
@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'university.apps.UniversityConfig',
     'department.apps.DepartmentConfig',
     'user.apps.UserConfig',
+    'lecture.apps.LectureConfig',
 
     'board.apps.BoardConfig',
     'article.apps.ArticleConfig',
@@ -283,3 +284,5 @@ if "TEAM11_SERVER_ENV" in os.environ :
             },
         },
     }
+
+SESSION_COOKIE_DOMAIN = '.wafl.shop'
