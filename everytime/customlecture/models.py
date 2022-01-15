@@ -17,10 +17,9 @@ class CustomLecture(BaseModel):
         for time in times:
             weekdays = time.split('(')[0]
             start_code, end_code = (time.split('(')[1][:-1]).split('~')
-            start_code, end_code = start_code.split(':'), end_code.split(':')
-
-            start = int(start_code[0]) * 2 + int(int(start_code[1]) >= 29)
-            end = int(end_code[0]) * 2 + 1 + int(int(end_code[1]) >= 29)
+            start, end = start_code.split(':'), end_code.split(':')
+            start = (int(start[0]), int(start[1]))
+            end = (int(end[0]), int(end[1]))
 
             set_time.add((weekdays, start, end))
         return set_time
