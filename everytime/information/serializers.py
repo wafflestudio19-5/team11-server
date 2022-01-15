@@ -38,7 +38,7 @@ class InformationCreateSerializer(serializers.ModelSerializer):
             raise CustomException("Lecture가 SubjectProfessor에 포함되지 않습니다.", status.HTTP_409_CONFLICT)
 
         if Information.objects.filter(user=user, lecture=lecture):
-            raise CustomException("이미 강의평을 작성한 적이 있습니다.", status.HTTP_409_CONFLICT)
+            raise CustomException("이미 시험정보를 작성한 적이 있습니다.", status.HTTP_409_CONFLICT)
 
         return data
 
