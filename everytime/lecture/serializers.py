@@ -7,6 +7,7 @@ from university.models import University
 from article.serializers import *
 from common.custom_exception import CustomException
 from review.models import *
+from statistics import mode, mean
 
 class SubjectProfessorSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
@@ -26,27 +27,19 @@ class SubjectProfessorSerializer(serializers.ModelSerializer):
         return data
 
     def get_review(self, obj):
-        summary = {"homework": [0, 0, 0],
-                   "team_activity": [0, 0, 0],
-                   "grading": [0, 0, 0],
-                   "attendance": [0, 0, 0, 0, 0],
-                   "test_count": [0, 0, 0, 0, 0]}
 
-        rating, length = 0, len(Review.objects.filter(subject_professor=obj))
-
-        if not length:
-            return "강의평 없음"
-
-        for review in Review.objects.filter(subject_professor=obj):
-            for field in summary:
-                summary[field][review.__getattribute__(field)] += 1
-            rating += review.rating
-        rating /= length
+        reviews = Review.objects.filter(subject_professor=obj)
+        if not reviews:
+            return None
 
         data = {}
-        for field in summary:
-            data[field] = summary[field].index(max(summary[field]))
-        data['rating'] = rating
+
+        fields = ("homework", "team_activity", "grading", "attendance", "test_count", "rating")
+        functions = (mode, mode, mode, mode, mode, mean)
+
+        for field, function in zip(fields, functions):
+            data[field] = function([i.__getattribute__(field) for i in reviews])
+
         return data
 
 
