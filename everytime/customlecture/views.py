@@ -44,6 +44,7 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
         return Response(status=status.HTTP_200_OK, data=CustomLectureViewSerializer(custom_lecture).data)
 
     # GET /schedule/{id}/custom_lecture/
+
     def list(self, request, schedule_id):
 
         if schedule_id == 'default':
@@ -66,8 +67,6 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
 
-    # GET /schedule/{id}/custom_lecture/{id}
-
     @classmethod
     def get_schedule_custom_lecture(cls, schedule_id, custom_lecture_id, user):
         if schedule_id == 'default':
@@ -88,12 +87,16 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
 
         return schedule, custom_lecture
 
+    # GET /schedule/{id}/custom_lecture/{id}
+
     def retrieve(self, request, schedule_id, pk):
         schedule, custom_lecture = self.get_schedule_custom_lecture(schedule_id, pk, request.user)
         if not custom_lecture:
             return Response(status=status.HTTP_404_NOT_FOUND, data=schedule)
 
         return Response(status=status.HTTP_200_OK, data=CustomLectureViewSerializer(custom_lecture).data)
+
+    # PUT /schedule/{id}/custom_lecture/{id}
 
     def put(self, request, schedule_id, pk):
         schedule, custom_lecture = self.get_schedule_custom_lecture(schedule_id, pk, request.user)
@@ -107,6 +110,8 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
 
         return Response(status=status.HTTP_200_OK, data=CustomLectureViewSerializer(custom_lecture).data)
         ##return Response(status=status.HTTP_200_OK, data="성공적으로 삭제되었습니다")
+
+    # DELETE /schedule/{id}/custom_lecture/{id}
 
     def delete(self, request, schedule_id, pk):
         schedule, custom_lecture = self.get_schedule_custom_lecture(schedule_id, pk, request.user)

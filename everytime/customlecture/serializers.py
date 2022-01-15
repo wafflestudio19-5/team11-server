@@ -13,7 +13,7 @@ from common.custom_exception import CustomException
 class CustomLectureCreateSerializer(serializers.ModelSerializer):
 
     lecture = serializers.IntegerField()
-    memo = serializers.CharField(max_length=200, required=False)
+    memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = CustomLecture
@@ -53,7 +53,7 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer):
     professor = serializers.CharField(max_length=100)
     time = serializers.CharField(max_length=100)
     location = serializers.CharField(max_length=100)
-    memo = serializers.CharField(max_length=200, required=False)
+    memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = CustomLecture
@@ -78,7 +78,7 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer):
 
 class CustomLecturePutSerializer(serializers.ModelSerializer):
     nickname = serializers.CharField(max_length=100, required=False)
-    memo = serializers.CharField(max_length=200, required=False)
+    memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = CustomLecture
