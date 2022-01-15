@@ -45,3 +45,10 @@ class ScheduleViewSerializer(serializers.ModelSerializer):
         model = Schedule
         fields = ('id', 'name', 'year', 'season', 'last_visit')
 
+
+class ScheduleNameSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=100)
+
+    class Meta:
+        model = Schedule
+        fields = ('name', )

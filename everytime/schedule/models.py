@@ -6,6 +6,12 @@ from lecture.models import Lecture
 # Create your models here.
 class Schedule(BaseModel):
 
+    @classmethod
+    def get_default_schedule(cls, user):
+        if not Schedule.objects.filter(user=user):
+            return None
+        return Schedule.objects.filter(user=user).order_by('last_visit').last()
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     year = models.IntegerField()
