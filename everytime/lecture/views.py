@@ -164,15 +164,21 @@ class LectureViewSet(viewsets.GenericViewSet):
 
     # PUT /lecture/
     def put(self, request):
+        #subject_professor를 불러옴
+        subject_name = request.data['subject_name']
+        professor = request.data['professor'] if request.data['professor'] else None
 
-        subject_professor = SubjectProfessor.objects.get_or_none(subject_name=request.data['subject_name'], professor=request.data['professor'])
+        subject_professor = SubjectProfessor.objects.get_or_none(subject_name=subject_name, professor=professor)
         if not subject_professor:
             return Response(status=status.HTTP_404_NOT_FOUND, data="존재하지 않는 Subject-Professor입니다. ")
-        lecture = Lecture.objects.get_or_none(subject_professor=subject_professor, year=request.data['year'],
-                                              season=request.data['season'], number=request.data['number'],
-                                              subject_code=request.data['subject_code'])
 
-        #lecture에서 subject_code만 다른 경우 있음 (김건희의 고급인공지능)
+        #lecture를 불러옴
+        # lecture에서 subject_code만 다른 경우 있음 (김건희의 고급인공지능)
+        lecture = Lecture.objects.get_or_none(subject_professor=subject_professor,
+                                              year=request.data['year'],
+                                              season=request.data['season'],
+                                              number=request.data['number'],
+                                              subject_code=request.data['subject_code'])
 
         if not lecture:
             return Response(status=status.HTTP_404_NOT_FOUND, data="존재하지 않는 Lecture입니다. ")
@@ -184,37 +190,3 @@ class LectureViewSet(viewsets.GenericViewSet):
         return Response(status=status.HTTP_200_OK, data=LectureViewSerializer(lecture).data)
 
 
-    '''
-    # PUT /board/{board_id}/
-    def update(self, request, pk):
-        if not (board := Board.objects.get_or_none(id=pk)):
-            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "게시판이 존재하지 않습니다."})
-
-        serializer = self.get_serializer(board, data=request.data, context={'request': request}, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.update(board, serializer.validated_data)
-
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
-
-    # GET /board/{board_id}/
-    def retrieve(self, request, pk):
-        if not (board := Board.objects.get_or_none(id=pk)):
-            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "게시판이 존재하지 않습니다."})
-
-        serializer = self.get_serializer(board)
-        return Response(status=status.HTTP_200_OK, data=serializer.data)
-
-    # DELETE /board/
-    def destroy(self, request, pk):
-
-        if not (board := Board.objects.get_or_none(id=pk)):
-            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "게시판이 존재하지 않습니다."})
-
-        if not request.user.is_superuser and request.user != board.manager:
-            return Response(status=status.HTTP_401_UNAUTHORIZED,
-                            data={"error": "wrong_user", "detail": "게시판 관리자만 접근 가능합니다."})
-
-        board = Board.objects.get(id=pk)
-        board.delete()
-        return Response(status=status.HTTP_200_OK, data={"success": True})
-    '''

@@ -8,10 +8,8 @@ from article.serializers import *
 from common.custom_exception import CustomException
 from review.models import *
 
-
-
 class SubjectProfessorSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(required=False)
     subject_name = serializers.CharField()
     professor = serializers.CharField(allow_null=True)
     review = serializers.SerializerMethodField()
@@ -34,12 +32,12 @@ class SubjectProfessorSerializer(serializers.ModelSerializer):
                    "attendance": [0, 0, 0, 0, 0],
                    "test_count": [0, 0, 0, 0, 0]}
 
-        rating, length = 0, len(Review.objects.filter(lecture__subject_professor=obj))
+        rating, length = 0, len(Review.objects.filter(subject_professor=obj))
 
         if not length:
             return "강의평 없음"
 
-        for review in Review.objects.filter(lecture__subject_professor=obj):
+        for review in Review.objects.filter(subject_professor=obj):
             for field in summary:
                 summary[field][review.__getattribute__(field)] += 1
             rating += review.rating
