@@ -36,12 +36,13 @@ class ReviewViewSet(viewsets.GenericViewSet):
         #review = None
         return Response(status=status.HTTP_200_OK, data=ReviewViewSerializer(review).data)
 
+    # GET /subject_professor/{subject_professor}/review/
     def list(self, request, subject_professor_id):
         if not (subject_professor := SubjectProfessor.objects.get_or_none(id=subject_professor_id)):
             return Response(status=status.HTTP_404_NOT_FOUND,
                             data={"error": "wrong_board_id", "detail": "SubjectProfessor가 존재하지 않습니다."})
 
-        reviews = Review.objects.filter(lecture__subject_professor_id=subject_professor_id)
+        reviews = Review.objects.filter(subject_professor=subject_professor)
         page = self.paginate_queryset(reviews)
         if page is not None:
             serializer = ReviewViewSerializer(page, many=True)

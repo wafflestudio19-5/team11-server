@@ -1,7 +1,7 @@
 from django.db import models
 from user.models import User
 from common.models import BaseModel
-from lecture.models import Lecture
+from lecture.models import SubjectProfessor
 
 # Create your models here.
 class Review(BaseModel):
@@ -16,7 +16,10 @@ class Review(BaseModel):
     TestCountCode = {0: "없음", 1: "한번", 2: "두번", 3: "세번", 4: "네번이상",
                      "없음": 0, "한번": 1, "두번": 2, '세번': 3, '네번이상': 4}
 
-    lecture = models.ForeignKey(Lecture, on_delete=models.CASCADE)
+    subject_professor = models.ForeignKey(SubjectProfessor, on_delete=models.CASCADE)
+    year = models.IntegerField()
+    season = models.IntegerField()
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField()
     homework = models.IntegerField()
