@@ -33,8 +33,7 @@ class CustomLectureCreateSerializer(serializers.ModelSerializer):
             raise CustomException("존재하지 않는 강의입니다. ", status.HTTP_404_NOT_FOUND)
 
         custom_lectures = CustomLecture.objects.filter(schedule=schedule)
-
-        current_time = reduce(lambda x, y: x.union(y), [i.get_time() for i in custom_lectures])
+        current_time = reduce(lambda s1, s2: s1.union(s2), [i.get_time() for i in custom_lectures])
         new_time = CustomLecture.string_to_time_set(lecture.time)
 
         for nt in new_time:
@@ -80,6 +79,21 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer):
 
         if not schedule:
             raise CustomException("존재하지 않는 시간표입니다. ", status.HTTP_404_NOT_FOUND)
+
+        custom_lectures = CustomLecture.objects.filter(schedule=schedule)
+        current_time = reduce(lambda s1, s2: s1.union(s2), [i.get_time() for i in custom_lectures])
+        try:
+            new_time = CustomLecture.string_to_time_set(data['time'])
+        except Exception:
+            raise CustomException("time의 형식이 잘못되었습니다. ", status.HTTP_400_BAD_REQUEST)
+
+        for nt in new_time:
+            for ct in current_time:
+                if nt[0] != ct[0]:
+                    continue
+                if ct[2] <= nt[1] or nt[2] <= ct[1]:
+                    continue
+                raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_404_NOT_FOUND)
 
         return data
 
