@@ -7,6 +7,7 @@ from article.models import Article
 from comment.models import Comment
 from .models import *
 from comment.serializers import CommentSerializer
+from functools import reduce
 
 from common.custom_exception import CustomException
 
@@ -30,6 +31,20 @@ class CustomLectureCreateSerializer(serializers.ModelSerializer):
         lecture = Lecture.objects.get_or_none(id=data['lecture'], year=schedule.year, season=schedule.season)
         if not lecture:
             raise CustomException("존재하지 않는 강의입니다. ", status.HTTP_404_NOT_FOUND)
+
+        custom_lectures = CustomLecture.objects.filter(schedule=schedule)
+
+        current_time = reduce(lambda x, y: x.union(y), [i.get_time() for i in custom_lectures])
+        new_time = CustomLecture.string_to_time_set(lecture.time)
+
+        for nt in new_time:
+            for ct in current_time:
+                if nt[0] != ct[0]:
+                    continue
+                if ct[2] <= nt[1] or nt[2] <= ct[1]:
+                    continue
+                raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_404_NOT_FOUND)
+
 
         return data
 
@@ -60,8 +75,6 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer):
         fields = ('nickname', 'professor', 'time', 'location', 'memo')
 
     def validate(self, data):
-
-        print(data)
 
         schedule = self.context['schedule']
 

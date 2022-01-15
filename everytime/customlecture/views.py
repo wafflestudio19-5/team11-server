@@ -94,6 +94,8 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
         if not custom_lecture:
             return Response(status=status.HTTP_404_NOT_FOUND, data=schedule)
 
+        print(custom_lecture.get_time())
+
         return Response(status=status.HTTP_200_OK, data=CustomLectureViewSerializer(custom_lecture).data)
 
     # PUT /schedule/{id}/custom_lecture/{id}
