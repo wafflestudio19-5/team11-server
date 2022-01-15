@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     'review.apps.ReviewConfig',
     'information.apps.InformationConfig',
     'schedule.apps.ScheduleConfig',
+    'customlecture.apps.CustomlectureConfig',
 
     'board.apps.BoardConfig',
     'article.apps.ArticleConfig',
