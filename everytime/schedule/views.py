@@ -28,9 +28,8 @@ class ScheduleViewSet(viewsets.GenericViewSet):
         serializer = ScheduleCreateSerializer(data=data, context={'request': request})
         valid = serializer.is_valid(raise_exception=True)
         schedule = serializer.save()
-        #print(review)
-        #review = None
-        return Response(status=status.HTTP_200_OK, data=ScheduleViewSerializer(schedule).data)
+
+        return Response(status=status.HTTP_201_CREATED, data=ScheduleViewSerializer(schedule).data)
 
     # GET /schedule/
     def list(self, request):
@@ -44,6 +43,7 @@ class ScheduleViewSet(viewsets.GenericViewSet):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
 
+    # GET /schedule/{id}/
     def retrieve(self, request, pk):
         if pk == 'default':
             schedule = Schedule.get_default_schedule(request.user)
@@ -55,7 +55,7 @@ class ScheduleViewSet(viewsets.GenericViewSet):
 
         #schedule.last_visit = datetime.datetime.now()
         serializer = ScheduleViewSerializer(schedule, context={'request': request})
-        return Response(status=status.HTTP_201_CREATED, data=serializer.data)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def put(self, request, pk):
         if pk == 'default':
