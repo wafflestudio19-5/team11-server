@@ -26,6 +26,7 @@ class SubjectProfessorViewSet(viewsets.GenericViewSet):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
 
+    # GET /subject_professor/{id}
     def retrieve(self, request, pk):
         if not (subject_professor := SubjectProfessor.objects.get_or_none(id=pk)):
             return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "SubjectProfessor가 존재하지 않습니다."})
@@ -39,7 +40,6 @@ class SubjectProfessorDetailViewSet(viewsets.GenericViewSet):
 
     # GET /subject_professor/{subject_professor_id}/lecture/
     def list(self, request, subject_professor_id):
-        #queryset = request.query_params
         lectures = Lecture.objects.filter(subject_professor_id=subject_professor_id)
         page = self.paginate_queryset(lectures)
 

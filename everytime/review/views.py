@@ -22,18 +22,18 @@ class ReviewViewSet(viewsets.GenericViewSet):
 
     # POST /subject_professor/{subject_professor}/review/
     def create(self, request, subject_professor_id):
+
         if not (subject_professor := SubjectProfessor.objects.get_or_none(id=subject_professor_id)):
             return Response(status=status.HTTP_404_NOT_FOUND,
                             data={"error": "wrong_board_id", "detail": "SubjectProfessor가 존재하지 않습니다."})
 
-
-        data = request.data.copy()
+        data = request.data
         data['subject_professor'] = subject_professor_id
+
         serializer = ReviewCreateSerializer(data=data, context={'request': request})
         valid = serializer.is_valid(raise_exception=True)
         review = serializer.save()
-        print(review)
-        #review = None
+
         return Response(status=status.HTTP_200_OK, data=ReviewViewSerializer(review).data)
 
     # GET /subject_professor/{subject_professor}/review/
