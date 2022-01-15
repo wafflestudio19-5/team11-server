@@ -15,6 +15,8 @@ from university.models import University
 from board.models import Board
 #from .models import Article
 import requests
+from lecture.serializers import LectureViewSerializer
+from lecture.views import get_lectures_with_query
 
 
 class ScheduleViewSet(viewsets.GenericViewSet):
@@ -85,5 +87,28 @@ class ScheduleViewSet(viewsets.GenericViewSet):
 
         schedule.delete()
         return Response(status=status.HTTP_200_OK, data="성공적으로 지워졌습니다.")
+
+
+class ScheduleLectureViewSet(viewsets.GenericViewSet):
+    def list(self, request, schedule_id):
+        if schedule_id == 'default':
+            schedule = Schedule.get_default_schedule(request.user)
+        else:
+            schedule = Schedule.objects.get_or_none(id=schedule_id)
+
+        if not schedule:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "시간표가 존재하지 않습니다."})
+
+
+        query = request.query_params
+
+        lectures = get_lectures_with_query(Lecture.objects.filter(year=schedule.year, season=schedule.season), query)
+
+        page = self.paginate_queryset(lectures)
+        if page is not None:
+            serializer = LectureViewSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
 
 
