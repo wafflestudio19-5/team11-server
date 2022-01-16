@@ -24,6 +24,13 @@ def filter_subject_professor(subject_professors, query):
     return subject_professors
 
 def filter_lectures(lectures, query):
+    if 'sort' in query:
+        criteria = query.get('sort')
+        if criteria == 'subject_code':
+            lectures = lectures.order_by('subject_code')
+        elif criteria  == 'subject_name':
+            lectures = lectures.order_by('subject_professor__subject_name')
+
     if 'subject_name' in query:
         subject_name = query.get('subject_name')
         if subject_name:
