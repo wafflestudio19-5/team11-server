@@ -52,3 +52,15 @@ class ScheduleNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Schedule
         fields = ('name', )
+
+    def validate(self, data):
+        schedule = self.instance
+        user = self.context['request'].user
+        name = data['name']
+
+        if schedule.user != user:
+            raise CustomException("편집 권한이 없습니다. ", status.HTTP_403_FORBIDDEN)
+        if schedule.name != name and Schedule.objects.filter(user=user, year=schedule.year, season=schedule.season, name=name):
+            raise CustomException("이미 존재하는 시간표명입니다. ", status.HTTP_409_CONFLICT)
+
+        return data

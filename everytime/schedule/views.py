@@ -74,7 +74,7 @@ class ScheduleViewSet(viewsets.GenericViewSet):
 
         #print(schedule, request.data)
 
-        serializer = ScheduleNameSerializer(schedule, data=request.data)
+        serializer = ScheduleNameSerializer(schedule, data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.update(schedule, serializer.validated_data)
 
@@ -88,6 +88,9 @@ class ScheduleViewSet(viewsets.GenericViewSet):
 
         if not schedule:
             return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "시간표가 존재하지 않습니다."})
+
+        if schedule.user != request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN, data={"error": "forbidden", "detail": "삭제 권한이 없습니다."})
 
         schedule.delete()
         return Response(status=status.HTTP_200_OK, data="성공적으로 지워졌습니다.")
