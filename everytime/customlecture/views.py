@@ -76,7 +76,7 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
         if schedule_id == 'default':
             schedule = Schedule.get_default_schedule(user)
         else:
-            schedule = Schedule.objects.get_or_none(id=schedule_id)
+            schedule = Schedule.objects.get_or_none(id=schedule_id, user=user)
 
         if not schedule:
             return "해당되는 시간표가 없습니다", None
