@@ -2,30 +2,30 @@ from .models import Lecture
 from django.db.models import Q
 
 def filter_lectures(lectures, query):
-    if 'subject' in query:
-        subject = query.get('subject')
-        if not subject:
-            lectures = Lecture.objects.none()
-        else:
+    if 'subject_name' in query:
+        subject_name = query.get('subject_name')
+        if subject_name:
             q = Q()
-            keywords = set(subject.split(' '))
+            keywords = set(subject_name.split(' '))
             for k in keywords:
                 q &= Q(subject_professor__subject_name__icontains=k)
             lectures = lectures.filter(q)
+        else:
+            lectures = Lecture.objects.none()
 
     if 'subject_code' in query:
         subject_code = query.get('subject_code')
-        if not subject_code:
-            lectures = Lecture.objects.none()
+        if subject_code:
+            lectures = lectures.filter(subject_code__icontains=subject_code)
         else:
-            lectures = lectures.filter(subject_code=subject_code)
+            lectures = Lecture.objects.none()
 
     if 'professor' in query:
         professor = query.get('professor')
-        if not professor:
-            lectures = Lecture.objects.none()
-        else:
+        if professor:
             lectures = lectures.filter(subject_professor__professor__icontains=professor)
+        else:
+            lectures = Lecture.objects.none()
 
     if 'year' in query:
         try:
@@ -42,8 +42,13 @@ def filter_lectures(lectures, query):
             lectures = Lecture.objects.none()
 
     if 'department' in query:
-        department = query.get('department').split(' ')
-        lectures = lectures.filter(department__in=department)
+        query_department = query.get('department').split(' ')
+        if len(query_department) == 1:
+            college = query_department[0]
+            lectures = lectures.filter(college=college)
+        elif len(query_department) == 2:
+            college, department = query_department
+            lectures = lectures.filter(college=college, department=department)
 
     if 'grade' in query:
         try:
@@ -78,13 +83,10 @@ def filter_lectures(lectures, query):
         lectures = lectures.filter(language__in=language)
 
     if 'location' in query:
-        locations = query.get('location').split(' ')
-        if not locations:
-            lectures = Lecture.objects.none()
+        location = query.get('location')
+        if location:
+            lectures = lectures.filter(location__icontains=location)
         else:
-            q = Q()
-            for k in locations:
-                q &= Q(location__icontains=k + "-")
-            lectures = lectures.filter(q)
+            lectures = Lecture.objects.none()
 
     return lectures
