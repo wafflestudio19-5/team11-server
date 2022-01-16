@@ -41,7 +41,7 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
             valid = serializer.is_valid(raise_exception=True)
             custom_lecture = serializer.save()
 
-        return Response(status=status.HTTP_200_OK, data=CustomLectureViewSerializer(custom_lecture).data)
+        return Response(status=status.HTTP_201_CREATED, data=CustomLectureViewSerializer(custom_lecture).data)
 
     # GET /schedule/{id}/custom_lecture/
 
@@ -55,17 +55,16 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
         if not schedule:
             return Response(status=status.HTTP_404_NOT_FOUND, data="존재하지 않는 시간표입니다.")
 
+        if schedule.user != request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN, data={"error": "forbidden", "detail": "읽기 권한이 없습니다."})
+
         schedule.last_visit = datetime.datetime.now()
         schedule.save()
 
         custom_lecture = self.get_queryset().filter(schedule=schedule)
 
-        page = self.paginate_queryset(custom_lecture)
-        if page is not None:
-            serializer = CustomLectureViewSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
+        return Response(status=status.HTTP_200_OK, data=CustomLectureViewSerializer(custom_lecture, many=True).data)
+
 
     def get_queryset(self):
         queryset = CustomLecture.objects.all()
@@ -98,8 +97,6 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
         schedule, custom_lecture = self.get_schedule_custom_lecture(schedule_id, pk, request.user)
         if not custom_lecture:
             return Response(status=status.HTTP_404_NOT_FOUND, data=schedule)
-
-        print(custom_lecture.get_time())
 
         return Response(status=status.HTTP_200_OK, data=CustomLectureViewSerializer(custom_lecture).data)
 

@@ -21,7 +21,7 @@ class CustomLectureCreateSerializer(serializers.ModelSerializer):
         fields = ('lecture', 'memo')
 
     def validate(self, data):
-        #user = self.context['request'].user
+        user = self.context['request'].user
 
         schedule = self.context['schedule']
 
@@ -32,8 +32,14 @@ class CustomLectureCreateSerializer(serializers.ModelSerializer):
         if not lecture:
             raise CustomException("존재하지 않는 강의입니다. ", status.HTTP_404_NOT_FOUND)
 
+        if schedule.user != user:
+            raise CustomException("편집 권한이 없습니다. ", status.HTTP_403_FORBIDDEN)
+
         custom_lectures = CustomLecture.objects.filter(schedule=schedule)
-        current_time = reduce(lambda s1, s2: s1.union(s2), [i.get_time() for i in custom_lectures])
+        if custom_lectures:
+            current_time = reduce(lambda s1, s2: s1.union(s2), [i.get_time() for i in custom_lectures])
+        else:
+            current_time = set()
         new_time = CustomLecture.string_to_time_set(lecture.time)
 
         for nt in new_time:
@@ -42,7 +48,7 @@ class CustomLectureCreateSerializer(serializers.ModelSerializer):
                     continue
                 if ct[2] <= nt[1] or nt[2] <= ct[1]:
                     continue
-                raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_404_NOT_FOUND)
+                raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_409_CONFLICT)
 
 
         return data
@@ -74,14 +80,21 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer):
         fields = ('nickname', 'professor', 'time', 'location', 'memo')
 
     def validate(self, data):
-
+        user = self.context['request'].user
         schedule = self.context['schedule']
 
         if not schedule:
             raise CustomException("존재하지 않는 시간표입니다. ", status.HTTP_404_NOT_FOUND)
 
+        if schedule.user != user:
+            raise CustomException("편집 권한이 없습니다. ", status.HTTP_403_FORBIDDEN)
+
         custom_lectures = CustomLecture.objects.filter(schedule=schedule)
-        current_time = reduce(lambda s1, s2: s1.union(s2), [i.get_time() for i in custom_lectures])
+        if custom_lectures:
+            current_time = reduce(lambda s1, s2: s1.union(s2), [i.get_time() for i in custom_lectures])
+        else:
+            current_time = set()
+
         try:
             new_time = CustomLecture.string_to_time_set(data['time'])
         except Exception:
@@ -93,7 +106,7 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer):
                     continue
                 if ct[2] <= nt[1] or nt[2] <= ct[1]:
                     continue
-                raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_404_NOT_FOUND)
+                raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_409_CONFLICT)
 
         return data
 
