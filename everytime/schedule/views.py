@@ -35,8 +35,7 @@ class ScheduleViewSet(viewsets.GenericViewSet):
 
     # GET /schedule/
     def list(self, request):
-
-        schedules = Schedule.objects.filter(user=request.user)
+        schedules = self.get_queryset().filter(user=request.user)
 
         page = self.paginate_queryset(schedules)
         if page is not None:
@@ -44,6 +43,11 @@ class ScheduleViewSet(viewsets.GenericViewSet):
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
+
+    def get_queryset(self):
+        queryset = Schedule.objects.all()
+        return queryset
+
 
     # GET /schedule/{id}/
     def retrieve(self, request, pk):
@@ -101,7 +105,8 @@ class ScheduleLectureViewSet(viewsets.GenericViewSet):
 
         query = request.query_params
 
-        lectures = filter_lectures(Lecture.objects.filter(year=schedule.year, season=schedule.season), query)
+        lectures = self.get_queryset()
+        lectures = filter_lectures(lectures.filter(year=schedule.year, season=schedule.season), query)
 
         page = self.paginate_queryset(lectures)
         if page is not None:
@@ -109,5 +114,10 @@ class ScheduleLectureViewSet(viewsets.GenericViewSet):
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
+
+    def get_queryset(self):
+        queryset = Lecture.objects.all()
+        return queryset
+
 
 

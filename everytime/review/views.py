@@ -42,13 +42,18 @@ class ReviewViewSet(viewsets.GenericViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND,
                             data={"error": "wrong_board_id", "detail": "SubjectProfessor가 존재하지 않습니다."})
 
-        reviews = Review.objects.filter(subject_professor=subject_professor)
+        reviews = self.get_queryset().filter(subject_professor=subject_professor)
         page = self.paginate_queryset(reviews)
         if page is not None:
             serializer = ReviewViewSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
+
+    def get_queryset(self):
+        queryset = Review.objects.all()
+        return queryset
+
 
 
 

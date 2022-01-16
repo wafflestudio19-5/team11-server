@@ -41,7 +41,8 @@ class SubjectProfessorDetailViewSet(viewsets.GenericViewSet):
 
     # GET /subject_professor/{subject_professor_id}/lecture/
     def list(self, request, subject_professor_id):
-        lectures = Lecture.objects.filter(subject_professor_id=subject_professor_id)
+        lectures = self.get_queryset()
+        lectures = lectures.filter(subject_professor_id=subject_professor_id)
 
         filter_lectures(lectures, request.query_params)
 
@@ -53,6 +54,9 @@ class SubjectProfessorDetailViewSet(viewsets.GenericViewSet):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
 
+    def get_queryset(self):
+        queryset = Lecture.objects.all()
+        return queryset
 
 
 
@@ -63,15 +67,21 @@ class LectureViewSet(viewsets.GenericViewSet):
     # GET /lecture/
     def list(self, request):
 
-        lectures = filter_lectures(Lecture.objects.all(), request.query_params)
+        queryset = self.get_queryset()
+        query = request.query_params
 
+        lectures = filter_lectures(queryset, query)
         page = self.paginate_queryset(lectures)
+
         if page is not None:
             serializer = LectureViewSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
 
+    def get_queryset(self):
+        queryset = Lecture.objects.all()
+        return queryset
 
     # POST /lecture/
     def create(self, request):

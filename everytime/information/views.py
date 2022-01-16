@@ -30,13 +30,18 @@ class InformationViewSet(viewsets.GenericViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND,
                             data={"error": "wrong_board_id", "detail": "SubjectProfessor가 존재하지 않습니다."})
 
-        informations= Information.objects.filter(subject_professor=subject_professor)
+        informations= self.get_queryset().filter(subject_professor=subject_professor)
         page = self.paginate_queryset(informations)
         if page is not None:
             serializer = InformationViewSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
+
+    def get_queryset(self):
+        queryset = Information.objects.all()
+        return queryset
+
 
 
 

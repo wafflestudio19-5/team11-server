@@ -58,7 +58,7 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
         schedule.last_visit = datetime.datetime.now()
         schedule.save()
 
-        custom_lecture = CustomLecture.objects.filter(schedule=schedule)
+        custom_lecture = self.get_queryset().filter(schedule=schedule)
 
         page = self.paginate_queryset(custom_lecture)
         if page is not None:
@@ -66,6 +66,11 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
+
+    def get_queryset(self):
+        queryset = CustomLecture.objects.all()
+        return queryset
+
 
     @classmethod
     def get_schedule_custom_lecture(cls, schedule_id, custom_lecture_id, user):
