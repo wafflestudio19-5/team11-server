@@ -14,16 +14,27 @@ class SubjectProfessorSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField()
     professor = serializers.CharField(allow_null=True)
     review = serializers.SerializerMethodField()
+    semester = serializers.SerializerMethodField()
 
     class Meta:
         model = SubjectProfessor
-        fields = ('id', 'subject_name', 'professor', 'review')
+        fields = ('id', 'subject_name', 'professor', 'review', 'semester')
 
 
     def validate(self, data):
         if SubjectProfessor.objects.filter(subject_name=data['subject_name'], professor=data['professor']):
             raise CustomException("이미 존재하는 Subject-Professor 입니다.", status.HTTP_409_CONFLICT)
         # create 시의 logic
+        return data
+
+    def get_semester(self, obj):
+        lectures = Lecture.objects.filter(subject_professor=obj)
+        set_year_season = set([(i.year, i.season) for i in lectures])
+
+        data = []
+        for i in set_year_season:
+            data.append(str(i[0])+"년 "+Lecture.SeasonCode[i[1]])
+
         return data
 
     def get_review(self, obj):
