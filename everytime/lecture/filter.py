@@ -1,5 +1,27 @@
-from .models import Lecture
+from .models import Lecture, SubjectProfessor
 from django.db.models import Q
+
+def filter_subject_professor(subject_professors, query):
+
+    if 'subject_name' in query:
+        subject_name = query.get('subject_name')
+        if subject_name:
+            q = Q()
+            keywords = set(subject_name.split(' '))
+            for k in keywords:
+                q &= Q(subject_name__icontains=k)
+            subject_professors = subject_professors.filter(q)
+        else:
+            subject_professors = SubjectProfessor.objects.none()
+
+    if 'professor' in query:
+        professor = query.get('professor')
+        if professor:
+            subject_professors = subject_professors.filter(professor__icontains=professor)
+        else:
+            subject_professors = SubjectProfessor.objects.none()
+
+    return subject_professors
 
 def filter_lectures(lectures, query):
     if 'subject_name' in query:

@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .filter import filter_lectures
+from .filter import *
 
 from .serializers import *
 from university.models import University
@@ -17,9 +17,16 @@ class SubjectProfessorViewSet(viewsets.GenericViewSet):
     serializer_class = LectureSerializer
     permission_classes = (permissions.AllowAny,)  # 테스트용 임시
 
+    def get_queryset(self):
+        queryset = SubjectProfessor.objects.filter(professor__isnull=False)
+        return queryset
+
     # GET /subject_professor/
     def list(self, request):
-        subject_professors = SubjectProfessor.objects.filter(professor__isnull=False)
+        subject_professors = self.get_queryset()
+
+        subject_professors = filter_subject_professor(subject_professors, request.query_params)
+
         page = self.paginate_queryset(subject_professors)
         if page is not None:
             serializer = SubjectProfessorSerializer(page, many=True)
