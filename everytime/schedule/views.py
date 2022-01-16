@@ -16,7 +16,7 @@ from board.models import Board
 #from .models import Article
 import requests
 from lecture.serializers import LectureViewSerializer
-from lecture.views import get_lectures_with_query
+from lecture.filter import filter_lectures
 
 
 class ScheduleViewSet(viewsets.GenericViewSet):
@@ -99,10 +99,9 @@ class ScheduleLectureViewSet(viewsets.GenericViewSet):
         if not schedule:
             return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "시간표가 존재하지 않습니다."})
 
-
         query = request.query_params
 
-        lectures = get_lectures_with_query(Lecture.objects.filter(year=schedule.year, season=schedule.season), query)
+        lectures = filter_lectures(Lecture.objects.filter(year=schedule.year, season=schedule.season), query)
 
         page = self.paginate_queryset(lectures)
         if page is not None:
