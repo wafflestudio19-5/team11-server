@@ -40,6 +40,11 @@ class SubjectProfessorSerializer(serializers.ModelSerializer):
         for field, function in zip(fields, functions):
             data[field] = function([i.__getattribute__(field) for i in reviews])
 
+        data['homework'] = Review.HomeworkCode[data['homework']]
+        data['team_activity'] = Review.TeamActivityCode[data['team_activity']]
+        data['grading'] = Review.GradingCode[data['grading']]
+        data['attendance'] = Review.AttendanceCode[data['attendance']]
+
         return data
 
 
