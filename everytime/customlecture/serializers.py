@@ -154,18 +154,24 @@ class CustomLectureViewSerializer(serializers.ModelSerializer):
         dict = {}
         times, locations = obj.time, obj.location
 
-        if not times:
-            return None
-
-        times = obj.time.split('/')
+        if times:
+            times = obj.time.split('/')
         if locations:
             locations = obj.location.split('/')
 
+        # 시간이 None
+        if not times:
+            return None
+
+        # 공간이 None
+        # time과 location의 / 갯수가 일치하지 않음
         if not locations or len(times) != len(locations):
             for time in times:
                 if time not in dict:
                     dict[time] = set()
                 dict[time].add(obj.location)
+
+        # time과 location의 / 갯수가 일치함
         else:
             for time, location in zip(times, locations):
                 if time not in dict:
@@ -175,9 +181,12 @@ class CustomLectureViewSerializer(serializers.ModelSerializer):
         data = []
 
         for time in dict:
+
             weekdays, clock = time.split('(')[0], time.split('(')[1][:-1]
             start, end = clock.split('~')
+
             dict[time] -= {None}
+
             sub_data = {'weekdays': weekdays, 'start': start, 'end': end, 'location': None if not dict[time] else dict[time]}
             data.append(sub_data)
 
