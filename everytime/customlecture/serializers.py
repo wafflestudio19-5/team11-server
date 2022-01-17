@@ -139,12 +139,49 @@ class CustomLectureViewSerializer(serializers.ModelSerializer):
     time = serializers.CharField()
     location = serializers.CharField()
     memo = serializers.CharField()
+    time_location = serializers.SerializerMethodField()
 
     class Meta:
         model = Schedule
-        fields = ('id', 'lecture', 'nickname', 'professor', 'time', 'location', 'memo')
+        fields = ('id', 'lecture', 'nickname', 'professor', 'time', 'location', 'memo', 'time_location')
 
     def get_lecture(self, obj):
         if not obj.lecture:
             return None
         return obj.lecture.id
+
+    def get_time_location(self, obj):
+        dict = {}
+        times, locations = obj.time, obj.location
+
+        if not times:
+            return None
+
+        times = obj.time.split('/')
+        if locations:
+            locations = obj.location.split('/')
+
+        if not locations or len(times) != len(locations):
+            for time in times:
+                if time not in dict:
+                    dict[time] = set()
+                dict[time].add(obj.location)
+        else:
+            for time, location in zip(times, locations):
+                if time not in dict:
+                    dict[time] = set()
+                dict[time].add(location)
+
+        data = []
+
+        for time in dict:
+            weekdays, clock = time.split('(')[0], time.split('(')[1][:-1]
+            start, end = clock.split('~')
+            dict[time] -= {None}
+            sub_data = {'weekdays': weekdays, 'start': start, 'end': end, 'location': None if not dict[time] else dict[time]}
+            data.append(sub_data)
+
+        return data
+
+
+

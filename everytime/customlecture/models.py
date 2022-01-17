@@ -33,8 +33,8 @@ class CustomLecture(BaseModel):
     professor = models.CharField(max_length=100, null=True)
 
     # 시간이 비어있을 수 있음
-    time = models.CharField(max_length=100, null=True)
-    location = models.CharField(max_length=100, null=True)
+    time = models.CharField(max_length=300, null=True)
+    location = models.CharField(max_length=300, null=True)
     memo = models.CharField(max_length=200, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
