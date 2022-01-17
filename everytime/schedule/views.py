@@ -31,7 +31,7 @@ class ScheduleViewSet(viewsets.GenericViewSet):
         valid = serializer.is_valid(raise_exception=True)
         schedule = serializer.save()
 
-        return Response(status=status.HTTP_201_CREATED, data=ScheduleViewSerializer(schedule).data)
+        return Response(status=status.HTTP_201_CREATED, data=ScheduleViewSerializer(schedule,  context={'request': request}).data)
 
     # GET /schedule/
     def list(self, request):
@@ -39,7 +39,7 @@ class ScheduleViewSet(viewsets.GenericViewSet):
 
         page = self.paginate_queryset(schedules)
         if page is not None:
-            serializer = ScheduleViewSerializer(page, many=True)
+            serializer = ScheduleViewSerializer(page, context={'request': request}, many=True)
             return self.get_paginated_response(serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
@@ -78,7 +78,7 @@ class ScheduleViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.update(schedule, serializer.validated_data)
 
-        return Response(status=status.HTTP_200_OK, data=ScheduleViewSerializer(schedule).data)
+        return Response(status=status.HTTP_200_OK, data=ScheduleViewSerializer(schedule,  context={'request': request}).data)
 
     def delete(self, request, pk):
         if pk == 'default':

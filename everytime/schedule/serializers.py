@@ -40,10 +40,16 @@ class ScheduleViewSerializer(serializers.ModelSerializer):
     year = serializers.IntegerField()
     season = serializers.IntegerField()
     last_visit = serializers.DateTimeField()
+    is_default = serializers.SerializerMethodField()
 
     class Meta:
         model = Schedule
-        fields = ('id', 'name', 'year', 'season', 'last_visit')
+        fields = ('id', 'name', 'year', 'season', 'last_visit', 'is_default')
+
+    def get_is_default(self, obj):
+        user = self.context['request'].user
+        schedule = Schedule.get_default_schedule(user)
+        return obj == schedule
 
 
 class ScheduleNameSerializer(serializers.ModelSerializer):
