@@ -39,11 +39,14 @@ class CommentViewSet(viewsets.GenericViewSet):
         serializer = CommentCreateSerializer(data=data, context={'request': request, 'article_id': article_id})
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
-        try:
-            if comment.is_subcomment == True:
-                send_push("new_subcomment", comment, comment.parent.commenter.fcm_token)
-        except Exception as e:
-            logger.debug(e)
+
+        if comment.is_subcomment == True:
+            try:
+                send_push("new_subcomment", comment, comment.parent.commenter.fcm_token)    
+            except Exception as e:
+                logger.debug(e)
+        else:
+            user_comment = UserComment.objects.create(comment=comment, user=request.user, subscribe=True)
 
         return Response(status=status.HTTP_200_OK, data={"success" : True, "comment_id" : comment.id})
 
@@ -95,7 +98,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         
         return Response(status=status.HTTP_200_OK, data={"comments" : CommentSerializer(comments, context = {'request' : request}, many=True).data})
 
-class UserCommentLikeView(viewsets.GenericViewSet):
+class UserCommentView(viewsets.GenericViewSet):
     serializer_class = UserCommentSerializer
 
     def create(self, request, comment_id):
@@ -115,9 +118,22 @@ class UserCommentLikeView(viewsets.GenericViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.update(user_comment, serializer.validated_data)
 
+        return self.get_response(comment, user_comment)
+
+class UserCommentLikeView(UserCommentView):
+    def get_response(self, comment, user_comment):
         return Response(status=status.HTTP_200_OK,
                         data={
                             "like": UserComment.objects.filter(comment = comment, like = True).count(),
                             "detail": "이 댓글을 공감하였습니다."
+                            }
+                        )
+
+class UserCommentSubscribeView(UserCommentView):
+    def get_response(self, comment, user_comment):
+        return Response(status=status.HTTP_200_OK,
+                        data={
+                            "subscribe": UserComment.subscribe,
+                            "detail": "대댓글 알림을 켰습니다." if user_comment.subscribe else "대댓글 알림을 껐습니다."
                             }
                         )

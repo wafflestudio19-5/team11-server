@@ -100,18 +100,25 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class UserCommentSerializer(serializers.ModelSerializer):
     like = serializers.BooleanField(required=False)
-    #comment_id = serializers.IntegerField(required=False)
+    subscribe = serializers.BooleanField(required=False)
 
     class Meta:
         model = UserComment
-        fields = ('id', 'like',)
+        fields = ('id', 'like', 'subscribe',)
 
     def validate(self, data):
+        action = self.context['view'].basename 
         if self.instance == None:
-            return {'like' : True}
+            if action == 'comment_like':
+                return {'like' : True}
+            elif action == 'comment_subscribe':
+                return {'subscribe' : True}
+            return {}
         else:
-            if self.instance.like == True:
+            if action == 'comment_like' and self.instance.like == True:
                 raise CustomException("이미 공감한 댓글입니다.", status.HTTP_400_BAD_REQUEST)
+            elif action == 'comment_subscribe':
+                return {'subscribe' : not self.instance.subscribe}
             return {}
 
     def create(self, validated_data):

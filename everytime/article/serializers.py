@@ -201,7 +201,7 @@ class UserArticleSerializer(serializers.ModelSerializer):
             elif action == 'article_scrap':
                 return {'scrap' : not self.instance.scrap} # scrap과 unscrap 구현
             elif action == 'article_subscribe':
-                return {'subscribe' : not self.instance.scrap}
+                return {'subscribe' : not self.instance.subscribe}
             return {}
 
     def create(self, validated_data):

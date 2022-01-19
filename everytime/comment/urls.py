@@ -9,6 +9,7 @@ router = SimpleRouter()
 #router.register('board/<int:board_id>/article', ArticleViewSet, basename='article') 
 router.register(r'board/(?P<board_id>\d+)/article/(?P<article_id>\d+)/comment', CommentViewSet, basename='comment')
 router.register(r'like/comment/(?P<comment_id>\d+)', UserCommentLikeView, basename='comment_like')
+router.register(r'subscribe/comment/(?P<comment_id>\d+)', UserCommentSubscribeView, basename='comment_subscribe')
 
 urlpatterns = [
     path('', include(router.urls))
