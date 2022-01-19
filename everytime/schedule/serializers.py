@@ -12,9 +12,9 @@ from common.custom_exception import CustomException
 
 class ScheduleCreateSerializer(serializers.ModelSerializer):
 
-    name = serializers.CharField(max_length=100)
-    year = serializers.IntegerField()
-    season = serializers.IntegerField()
+    name = serializers.CharField(max_length=100, required = True)
+    year = serializers.IntegerField(required = True)
+    season = serializers.IntegerField(required = True)
 
     class Meta:
         model = Schedule

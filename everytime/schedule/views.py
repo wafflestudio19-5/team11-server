@@ -59,11 +59,12 @@ class ScheduleViewSet(viewsets.GenericViewSet):
         if not schedule:
             return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "시간표가 존재하지 않습니다."})
 
-        #schedule.last_visit = datetime.datetime.now()
+        schedule.last_visit = datetime.datetime.now()
+        schedule.save()
         serializer = ScheduleViewSerializer(schedule, context={'request': request})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
-    def put(self, request, pk):
+    def put(self, request, pk): # 정상적으로 작동하는지 확인해볼 것
         if pk == 'default':
             schedule = Schedule.get_default_schedule(request.user)
         else:
@@ -80,7 +81,7 @@ class ScheduleViewSet(viewsets.GenericViewSet):
 
         return Response(status=status.HTTP_200_OK, data=ScheduleViewSerializer(schedule,  context={'request': request}).data)
 
-    def delete(self, request, pk):
+    def delete(self, request, pk): # schedule = None일 경우 내가 볼때 문제가 발생한다. 체크해보자.
         if pk == 'default':
             schedule = Schedule.get_default_schedule(request.user)
         else:
