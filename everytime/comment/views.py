@@ -15,6 +15,11 @@ from comment.models import Comment, UserComment
 
 from .serializers import CommentCreateSerializer, CommentSerializer, UserCommentSerializer
 
+from common.fcm_notification import send_push
+
+import logging
+logger = logging.getLogger('django')
+
 class CommentViewSet(viewsets.GenericViewSet):
     serializer_class = CommentCreateSerializer
 
@@ -34,6 +39,11 @@ class CommentViewSet(viewsets.GenericViewSet):
         serializer = CommentCreateSerializer(data=data, context={'request': request, 'article_id': article_id})
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
+        try:
+            if comment.is_subcomment == True:
+                send_push("new_subcomment", comment, comment.parent.commenter.fcm_token)
+        except Exception as e:
+            logger.debug(e)
 
         return Response(status=status.HTTP_200_OK, data={"success" : True, "comment_id" : comment.id})
 
