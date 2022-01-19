@@ -30,7 +30,6 @@ class Migration(migrations.Migration):
                 ('subject_code', models.CharField(max_length=100)),
                 ('year', models.IntegerField()),
                 ('season', models.IntegerField()),
-                ('college', models.CharField(max_length=100, null=True)),
                 ('department', models.CharField(max_length=100, null=True)),
                 ('grade', models.IntegerField()),
                 ('level', models.IntegerField()),

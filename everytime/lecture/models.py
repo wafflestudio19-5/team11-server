@@ -1,8 +1,8 @@
 from django.db import models
+from department.models import College, Department
 from user.models import User
 from common.models import BaseModel
-
-
+from django.core.validators import MaxValueValidator, MinValueValidator
 class SubjectProfessor(BaseModel):
     subject_name = models.CharField(max_length=100, null = False)
     professor = models.CharField(max_length=100, null=True)
@@ -18,19 +18,19 @@ class Lecture(BaseModel):
     CategoryCode = {'교양': 1, '전선': 2, '전필': 3, '교직':4, '대학원':5, '논문':6, '일선':7, '공통':8,
                     1: '교양', 2: '전선', 3: '전필', 4: '교직', 5: '대학원', 6: '논문', 7: '일선', 8: '공통'}
 
-    subject_professor = models.ForeignKey(SubjectProfessor, on_delete=models.CASCADE, related_name='boards')
+    subject_professor = models.ForeignKey(SubjectProfessor, on_delete=models.CASCADE, related_name='prof_lecture')
     subject_code = models.CharField(max_length=100, null=False)
     ######
     year = models.IntegerField()
     season = models.IntegerField()
     ######
-    college = models.CharField(null=True, max_length=100)
-    department = models.CharField(null=True, max_length=100)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='department_lecture', null=True)
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='college_lecture', null=True)
     grade = models.IntegerField()
     level = models.IntegerField()
     credit = models.IntegerField()
     category = models.IntegerField() # 분류
-    number = models.IntegerField()
+    number = models.IntegerField() # 강좌번호
     detail = models.CharField(null=True, max_length=1000)
     language = models.CharField(max_length=100)
     ####

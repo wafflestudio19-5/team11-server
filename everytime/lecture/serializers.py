@@ -1,9 +1,11 @@
+from re import S
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from .models import Lecture, SubjectProfessor
 from university.models import University
+from department.models import *
 from article.serializers import *
 from common.custom_exception import CustomException
 from review.models import *
@@ -67,8 +69,9 @@ class LectureSerializer(serializers.ModelSerializer):
     year = serializers.IntegerField()
     season = serializers.IntegerField()
     ####
-    college = serializers.CharField(allow_null=True)
-    department = serializers.CharField(allow_null=True)
+    university = serializers.CharField(required = True, write_only=True)
+    college = serializers.CharField(required = False, allow_null=True)
+    department = serializers.CharField(required = False, allow_null=True)
     grade = serializers.IntegerField()
     level = serializers.IntegerField()
     credit = serializers.IntegerField()
@@ -85,7 +88,36 @@ class LectureSerializer(serializers.ModelSerializer):
         fields = ('subject_name', 'subject_code', 'professor',
                   'year', 'season', 'college', 'department', 'grade', 'level', 'credit',
                   'category', 'number', 'detail', 'language',
-                  'time', 'location')
+                  'time', 'location', 'university')
+
+    def validate(self, data):
+        university = University.objects.get_or_none(name = data['university'])
+        if not university:
+            raise CustomException("존재하지 않는 대학입니다.", status.HTTP_400_BAD_REQUEST)
+        
+        data.pop('university')
+
+        if 'college' in data:
+            college_name = data.get('college')
+            college = College.objects.get_or_none(name = college_name, university=university)
+            if not college:
+                raise CustomException("존재하지 않는 단과대입니다.", status.HTTP_400_BAD_REQUEST)
+
+            if 'department' in data:
+                department_name = data.get('department')
+                department = Department.objects.get_or_none(name = department_name, college = college)
+                if not department:
+                    raise CustomException("존재하지 않는 학과입니다.", status.HTTP_400_BAD_REQUEST)
+            else:
+                department = None
+        else:
+            college = None
+            department = None
+
+        data['college'] = college
+        data['department'] = department
+        
+        return data
 
     def create(self, validated_data):
         subject_professor = SubjectProfessor.objects.get_or_none\
@@ -120,6 +152,8 @@ class LectureViewSerializer(LectureSerializer):
     ####
     level = serializers.SerializerMethodField()
     category = serializers.SerializerMethodField()
+    department = serializers.SerializerMethodField()
+    college = serializers.SerializerMethodField()
     ####
 
     class Meta:
@@ -140,6 +174,16 @@ class LectureViewSerializer(LectureSerializer):
 
     def get_category(self, obj):
         return Lecture.CategoryCode[obj.category]
+
+    def get_department(self, obj):
+        if not obj.department:
+            return None
+        return obj.department.name
+
+    def get_college(self, obj):
+        if not obj.college:
+            return None
+        return obj.college.name
 
 
 
