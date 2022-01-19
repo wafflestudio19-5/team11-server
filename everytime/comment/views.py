@@ -45,7 +45,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             # parent 댓글 구독한 사람에게 알림 전송
             try:
                 uc = UserComment.objects.filter(comment=comment.parent, subscribe=True).exclude(id=request.user)
-                fcm_tokens = User.objects.filter(user_comment__in=uc).values("fcm_token")
+                fcm_tokens = User.objects.filter(user_comment__in=uc, fcm_token__isnull=False).values("fcm_token")
                 for fcm_token in fcm_tokens:
                     logger.debug(fcm_token)
                     send_push("new_subcomment", comment, fcm_token['fcm_token'])
@@ -56,7 +56,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             # 게시글 구독한 사람에게 알림 전송
             try:
                 ua = UserArticle.objects.filter(article=article_id, subscribe=True).exclude(id=request.user)
-                fcm_tokens = User.objects.filter(user_article__in=ua).values("fcm_token")
+                fcm_tokens = User.objects.filter(user_article__in=ua, fcm_token__isnull=False).values("fcm_token")
                 for fcm_token in fcm_tokens:
                     logger.debug(fcm_token)
                     send_push("new_comment", comment, fcm_token['fcm_token'])
