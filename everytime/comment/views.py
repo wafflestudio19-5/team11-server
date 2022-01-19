@@ -9,8 +9,9 @@ from rest_framework.decorators import action, parser_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from user.models import User
 from board.models import Board
-from article.models import Article
+from article.models import Article, UserArticle
 from comment.models import Comment, UserComment
 
 from .serializers import CommentCreateSerializer, CommentSerializer, UserCommentSerializer
@@ -41,12 +42,26 @@ class CommentViewSet(viewsets.GenericViewSet):
         comment = serializer.save()
 
         if comment.is_subcomment == True:
+            # parent 댓글 구독한 사람에게 알림 전송
             try:
-                send_push("new_subcomment", comment, comment.parent.commenter.fcm_token)    
+                uc = UserComment.objects.filter(comment=comment.parent, subscribe=True).exclude(id=request.user)
+                fcm_tokens = User.objects.filter(user_comment__in=uc).values("fcm_token")
+                for fcm_token in fcm_tokens:
+                    logger.debug(fcm_token)
+                    send_push("new_subcomment", comment, fcm_token['fcm_token'])
             except Exception as e:
                 logger.debug(e)
         else:
             user_comment = UserComment.objects.create(comment=comment, user=request.user, subscribe=True)
+            # 게시글 구독한 사람에게 알림 전송
+            try:
+                ua = UserArticle.objects.filter(article=article_id, subscribe=True).exclude(id=request.user)
+                fcm_tokens = User.objects.filter(user_article__in=ua).values("fcm_token")
+                for fcm_token in fcm_tokens:
+                    logger.debug(fcm_token)
+                    send_push("new_comment", comment, fcm_token['fcm_token'])
+            except Exception as e:
+                logger.debug(e)
 
         return Response(status=status.HTTP_200_OK, data={"success" : True, "comment_id" : comment.id})
 
