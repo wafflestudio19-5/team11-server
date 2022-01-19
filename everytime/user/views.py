@@ -237,10 +237,11 @@ class UserFCMTokenView(APIView):
     def post(self, request):
         user = request.user
         data = request.data.copy()
-        if data.get('fcm_token') == None:
+        if (fcm_token:=data.get('fcm_token')) == None:
             return Response({"error" : "fcm_token missing"}, status = status.HTTP_400_BAD_REQUEST)
         
-        user.fcm_token = data.get('fcm_token')
+        User.objects.filter(fcm_token=fcm_token).update(fcm_token=None)
+        user.fcm_token = fcm_token
         user.save()
 
         return Response({"success" : True}, status = status.HTTP_200_OK)
