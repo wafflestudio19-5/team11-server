@@ -34,8 +34,9 @@ class ArticleViewSet(viewsets.GenericViewSet):
         data['board'] = board_id
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
-
         article = serializer.save()
+
+        user_article = UserArticle.objects.create(article=article, user=request.user, subscribe=True)
 
         return Response(status=status.HTTP_200_OK, data={"success" : True, "article_id" : article.id})
 

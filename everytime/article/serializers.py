@@ -183,7 +183,7 @@ class UserArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserArticle
-        fields = ('id', 'like', 'scrap',)
+        fields = ('id', 'like', 'scrap', 'subscribe',)
 
     def validate(self, data):
         action = self.context['view'].basename 
@@ -193,7 +193,7 @@ class UserArticleSerializer(serializers.ModelSerializer):
             elif action == 'article_scrap':
                 return {'scrap' : True}
             elif action == 'article_subscribe':
-                return {'scrap' : True}
+                return {'subscribe' : True}
             return {}
         else:
             if action == 'article_like' and self.instance.like == True:
@@ -201,7 +201,7 @@ class UserArticleSerializer(serializers.ModelSerializer):
             elif action == 'article_scrap':
                 return {'scrap' : not self.instance.scrap} # scrap과 unscrap 구현
             elif action == 'article_subscribe':
-                return {'scrap' : not self.instance.scrap}
+                return {'subscribe' : not self.instance.scrap}
             return {}
 
     def create(self, validated_data):
