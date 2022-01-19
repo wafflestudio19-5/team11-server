@@ -85,6 +85,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     f_created_at = serializers.SerializerMethodField()
     has_scraped = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
+    has_subscribed = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
     is_question = serializers.BooleanField()
 
@@ -108,6 +109,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'f_created_at',
             'has_scraped',
             'has_liked',
+            'has_subscribed',
             'images',
         )
 
@@ -160,6 +162,9 @@ class ArticleSerializer(serializers.ModelSerializer):
     
     def get_has_liked(self, obj):
         return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, like=True, article=obj))
+
+    def get_has_subscribed(self, obj):
+        return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, subscribe=True, article=obj))
 
     def get_images(self, obj):
         images = ImageArticle.objects.filter(article = obj)

@@ -50,6 +50,7 @@ class CommentSerializer(serializers.ModelSerializer):
     user_nickname = serializers.SerializerMethodField()
     user_image = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
+    has_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -64,6 +65,7 @@ class CommentSerializer(serializers.ModelSerializer):
             'is_writer',
             'user_nickname', 
             'user_image',
+            'has_subscribed',
         )
 
     def get_is_mine(self, obj):
@@ -97,6 +99,8 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_like_count(self, obj):
         return UserComment.objects.filter(comment = obj, like = True).count()
 
+    def get_has_subscribed(self, obj):
+        return bool(UserComment.objects.get_or_none(user=self.context['request'].user, subscribe=True, comment=obj))
 
 class UserCommentSerializer(serializers.ModelSerializer):
     like = serializers.BooleanField(required=False)

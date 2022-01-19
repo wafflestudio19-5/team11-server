@@ -44,7 +44,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         if comment.is_subcomment == True:
             # parent 댓글 구독한 사람에게 알림 전송
             try:
-                uc = UserComment.objects.filter(comment=comment.parent, subscribe=True).exclude(id=request.user)
+                uc = UserComment.objects.filter(comment=comment.parent, subscribe=True).exclude(user=request.user)
                 fcm_tokens = User.objects.filter(user_comment__in=uc, fcm_token__isnull=False).values("fcm_token")
                 for fcm_token in fcm_tokens:
                     logger.debug(fcm_token)
@@ -55,7 +55,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             user_comment = UserComment.objects.create(comment=comment, user=request.user, subscribe=True)
             # 게시글 구독한 사람에게 알림 전송
             try:
-                ua = UserArticle.objects.filter(article=article_id, subscribe=True).exclude(id=request.user)
+                ua = UserArticle.objects.filter(article=article_id, subscribe=True).exclude(user=request.user)
                 fcm_tokens = User.objects.filter(user_article__in=ua, fcm_token__isnull=False).values("fcm_token")
                 for fcm_token in fcm_tokens:
                     logger.debug(fcm_token)
@@ -148,7 +148,7 @@ class UserCommentSubscribeView(UserCommentView):
     def get_response(self, comment, user_comment):
         return Response(status=status.HTTP_200_OK,
                         data={
-                            "subscribe": UserComment.subscribe,
+                            "subscribe": user_comment.subscribe,
                             "detail": "대댓글 알림을 켰습니다." if user_comment.subscribe else "대댓글 알림을 껐습니다."
                             }
                         )
