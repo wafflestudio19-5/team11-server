@@ -11,7 +11,7 @@ from functools import reduce
 
 from common.custom_exception import CustomException
 
-class CustomLectureCreateSerializer(serializers.ModelSerializer):
+class CustomLectureCreateSerializer(serializers.ModelSerializer): # lecture_id 기반 custom_lecture
 
     lecture = serializers.IntegerField()
     memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
@@ -67,7 +67,7 @@ class CustomLectureCreateSerializer(serializers.ModelSerializer):
 
         return CustomLecture.objects.create(**validated_data)
 
-class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer):
+class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lecture에 없는 수업 생성
 
     nickname = serializers.CharField(max_length=100)
     professor = serializers.CharField(max_length=100)
@@ -128,7 +128,6 @@ class CustomLecturePutSerializer(serializers.ModelSerializer):
         #
         result = super().update(instance, validated_data)
         instance.save()
-        print(instance.nickname)
         return result
 
 class CustomLectureViewSerializer(serializers.ModelSerializer):
