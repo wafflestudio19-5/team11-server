@@ -76,7 +76,6 @@ class UserLoginSerializer(serializers.Serializer):
     user_id = serializers.CharField(max_length=64, required=True)
     password = serializers.CharField(max_length=128, write_only=True)
     token = serializers.CharField(max_length=255, read_only=True)
-    fcm_token = serializers.CharField(max_length=255, required=False, write_only=True)
 
     def validate(self, data):
         user_id = data.get('user_id', None)

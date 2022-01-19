@@ -32,4 +32,6 @@ urlpatterns = [
 
     path('register/fire/', FireBaseUserSignUpView.as_view(), name='firesignup'),
     path('login/fire/', FireBaseUserLoginView.as_view(), name='firelogin'),
+
+    path('fcm_token/', UserFCMTokenView.as_view(), name='fcm_token'),  # /api/v1/fcm_token/
 ]

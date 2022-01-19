@@ -230,3 +230,17 @@ class UserUpdateProfileImageView(viewsets.GenericViewSet):
 
     def list(self, request, pk=None):
         return Response({"detail" : "profile_image"}, status = status.HTTP_200_OK)
+
+class UserFCMTokenView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def post(self, request):
+        user = request.user
+        data = request.data.copy()
+        if data.get('fcm_token') == None:
+            return Response({"error" : "fcm_token missing"}, status = status.HTTP_400_BAD_REQUEST)
+        
+        user.fcm_token = data.get('fcm_token')
+        user.save()
+
+        return Response({"success" : True}, status = status.HTTP_200_OK)
