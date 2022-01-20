@@ -71,13 +71,12 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lectu
 
     nickname = serializers.CharField(max_length=100)
     professor = serializers.CharField(max_length=100)
-    time = serializers.CharField(max_length=100)
-    location = serializers.CharField(max_length=100)
+    time_location = serializers.JSONField()
     memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = CustomLecture
-        fields = ('nickname', 'professor', 'time', 'location', 'memo')
+        fields = ('nickname', 'professor', 'time', 'location', 'memo', 'time_location')
 
     def validate(self, data):
         user = self.context['request'].user
@@ -95,24 +94,42 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lectu
         else:
             current_time = set()
 
-        try:
-            new_time = CustomLecture.string_to_time_set(data['time'])
-        except Exception:
-            raise CustomException("time의 형식이 잘못되었습니다. ", status.HTTP_400_BAD_REQUEST)
+        time_location = data['time_location']
+        for i in range(1, len(time_location)//2 + 1):
+            time = time_location['time'+str(i)]
+            location = time_location['location'+str(i)]
 
-        for nt in new_time:
-            for ct in current_time:
-                if nt[0] != ct[0]:
-                    continue
-                if ct[2] <= nt[1] or nt[2] <= ct[1]:
-                    continue
-                raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_409_CONFLICT)
+            try:
+                new_time = CustomLecture.string_to_time_set(time)
+            except Exception:
+                raise CustomException("time의 형식이 잘못되었습니다. ", status.HTTP_400_BAD_REQUEST)
+
+            for nt in new_time:
+                for ct in current_time:
+                    if nt[0] != ct[0]:
+                        continue
+                    if ct[2] <= nt[1] or nt[2] <= ct[1]:
+                        continue
+                    raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_409_CONFLICT)
 
         return data
 
     def create(self, validated_data):
         #validated_data['user'] = self.context['request'].user
         validated_data['schedule'] = self.context['schedule']
+
+        time_location = validated_data.pop('time_location')
+        validated_data['time'] = validated_data['location'] = ""
+
+        for i in range(1, len(time_location)//2 + 1):
+            time = time_location['time'+str(i)]
+            location = time_location['location'+str(i)]
+
+            validated_data['time'] += (time + '/')
+            validated_data['location'] += (location + '\t')
+
+        validated_data['time'] = validated_data['time'][:-1]
+        validated_data['location'] = validated_data['location'][:-1]
 
         return CustomLecture.objects.create(**validated_data)
 
@@ -153,10 +170,14 @@ class CustomLectureViewSerializer(serializers.ModelSerializer):
         dict = {}
         times, locations = obj.time, obj.location
 
+        time_code, locations_code = '/', '/'
+        if not obj.lecture:
+            locations_code = '\t'
+
         if times:
-            times = obj.time.split('/')
+            times = obj.time.split(time_code)
         if locations:
-            locations = obj.location.split('/')
+            locations = obj.location.split(locations_code)
 
         # 시간이 None
         if not times:
