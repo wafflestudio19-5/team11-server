@@ -85,6 +85,8 @@ INSTALLED_APPS = [
     'article.apps.ArticleConfig',
     'comment.apps.CommentConfig',
 
+    'message.apps.MessageConfig',
+
     'django.contrib.sites',
     'rest_framework',
     'django_extensions',
