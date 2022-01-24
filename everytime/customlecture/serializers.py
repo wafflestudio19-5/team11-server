@@ -60,7 +60,7 @@ class CustomLectureCreateSerializer(serializers.ModelSerializer): # lecture_id �
         lecture = Lecture.objects.get(id=validated_data['lecture'])
         validated_data['lecture'] = lecture
 
-        validated_data['nickname'] = lecture.subject_professor.subject_name
+        validated_data['title'] = lecture.subject_professor.subject_name
         validated_data['professor'] = lecture.subject_professor.professor
         validated_data['time'] = lecture.time
         validated_data['location'] = lecture.location
@@ -69,14 +69,15 @@ class CustomLectureCreateSerializer(serializers.ModelSerializer): # lecture_id �
 
 class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lecture에 없는 수업 생성
 
-    nickname = serializers.CharField(max_length=100)
+    nickname = serializers.CharField(max_length=100, required=False)
+    title = serializers.CharField(max_length=100)
     professor = serializers.CharField(max_length=100)
     time_location = serializers.JSONField()
     memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = CustomLecture
-        fields = ('nickname', 'professor', 'time', 'location', 'memo', 'time_location')
+        fields = ('nickname', 'title', 'professor', 'time', 'location', 'memo', 'time_location')
 
     def validate(self, data):
         user = self.context['request'].user
@@ -97,7 +98,7 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lectu
         time_location = data['time_location']
         for i in range(1, len(time_location)//2 + 1):
             time = time_location['time'+str(i)]
-            location = time_location['location'+str(i)]
+            # location = time_location['location'+str(i)]
 
             try:
                 new_time = CustomLecture.string_to_time_set(time)
@@ -150,6 +151,7 @@ class CustomLecturePutSerializer(serializers.ModelSerializer):
 class CustomLectureViewSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     lecture = serializers.SerializerMethodField()
+    title = serializers.CharField()
     nickname = serializers.CharField()
     professor = serializers.CharField()
     time = serializers.CharField()
@@ -159,7 +161,7 @@ class CustomLectureViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Schedule
-        fields = ('id', 'lecture', 'nickname', 'professor', 'time', 'location', 'memo', 'time_location')
+        fields = ('id', 'lecture', 'title', 'professor', 'time', 'location', 'memo', 'time_location', 'nickname')
 
     def get_lecture(self, obj):
         if not obj.lecture:
@@ -207,7 +209,7 @@ class CustomLectureViewSerializer(serializers.ModelSerializer):
 
             dict[time] -= {None}
 
-            sub_data = {'weekdays': weekdays, 'start': start, 'end': end, 'location': None if not dict[time] else dict[time]}
+            sub_data = {'time': weekdays + "(" + start + "~" + end + ")", 'location': None if not dict[time] else dict[time]}
             data.append(sub_data)
 
         return data

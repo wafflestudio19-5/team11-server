@@ -29,8 +29,9 @@ class CustomLecture(BaseModel):
 
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
     lecture = models.ForeignKey(Lecture, null=True, on_delete=models.SET_NULL)
-    nickname = models.CharField(max_length=100)
+    nickname = models.CharField(max_length=100, null=True)
     professor = models.CharField(max_length=100, null=True)
+    title = models.CharField(max_length=100, default='')
 
     # 시간이 비어있을 수 있음
     time = models.CharField(max_length=300, null=True)
