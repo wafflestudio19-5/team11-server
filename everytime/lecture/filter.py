@@ -74,10 +74,10 @@ def filter_lectures(lectures, query):
         query_department = query.get('department').split(' ')
         if len(query_department) == 1:
             college = query_department[0]
-            lectures = lectures.filter(college=college)
+            lectures = lectures.filter(college__name=college)
         elif len(query_department) == 2:
             college, department = query_department
-            lectures = lectures.filter(college=college, department=department)
+            lectures = lectures.filter(college__name=college, department__name=department)
 
     if 'grade' in query:
         try:

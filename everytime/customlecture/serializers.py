@@ -126,6 +126,8 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lectu
         for i in time_location:
             time = i['time']
             location = i['location']
+            if not location:
+                location = ""
             #time = time_location['time'+str(i)]
             #location = time_location['location'+str(i)]
 
