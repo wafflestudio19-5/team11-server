@@ -62,6 +62,18 @@ class CommentViewSet(viewsets.GenericViewSet):
                     send_push("new_comment", comment, fcm_token['fcm_token'])
             except Exception as e:
                 logger.debug(e)
+        
+        user_article = UserArticle.objects.get_or_none(article_id=article_id, user=request.user)
+        if user_article == None:
+            user_article = UserArticle.objects.create(article_id=article_id, user=request.user)
+        if comment.is_anonymous ==True and user_article.nickname_code == None:
+            last_nickname_code = UserArticle.objects.filter(article=article_id).order_by("nickname_code").last().nickname_code
+            if bool(last_nickname_code) == False:
+                nickname_code = 1
+            else:
+                nickname_code = last_nickname_code + 1
+            user_article.nickname_code = nickname_code
+            user_article.save()
 
         return Response(status=status.HTTP_200_OK, data={"success" : True, "comment_id" : comment.id})
 

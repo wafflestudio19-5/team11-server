@@ -36,7 +36,8 @@ class ArticleViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         article = serializer.save()
 
-        user_article = UserArticle.objects.create(article=article, user=request.user, subscribe=True)
+        nickname_code = 0 if article.is_anonymous == True else None
+        user_article = UserArticle.objects.create(article=article, user=request.user, subscribe=True, nickname_code=nickname_code)
 
         return Response(status=status.HTTP_200_OK, data={"success" : True, "article_id" : article.id})
 
