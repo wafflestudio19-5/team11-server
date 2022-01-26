@@ -80,6 +80,11 @@ INSTALLED_APPS = [
     'university.apps.UniversityConfig',
     'department.apps.DepartmentConfig',
     'user.apps.UserConfig',
+    'lecture.apps.LectureConfig',
+    'review.apps.ReviewConfig',
+    'information.apps.InformationConfig',
+    'schedule.apps.ScheduleConfig',
+    'customlecture.apps.CustomlectureConfig',
 
     'board.apps.BoardConfig',
     'article.apps.ArticleConfig',
