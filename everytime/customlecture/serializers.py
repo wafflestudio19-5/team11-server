@@ -70,7 +70,7 @@ class CustomLectureCreateSerializer(serializers.ModelSerializer): # lecture_id �
 class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lecture에 없는 수업 생성
 
     nickname = serializers.CharField(max_length=100)
-    professor = serializers.CharField(max_length=100)
+    professor = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
     time_location = serializers.ListField()
     memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
 
