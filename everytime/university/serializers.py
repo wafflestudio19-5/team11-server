@@ -1,7 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers
 from .models import University
-from department.serializers import DepartmentNameSerializer
 from department.models import Department
 
 class UniversitySerializer(serializers.ModelSerializer):
