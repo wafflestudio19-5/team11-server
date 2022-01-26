@@ -63,7 +63,7 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
 
         custom_lecture = self.get_queryset().filter(schedule=schedule)
 
-        return Response(status=status.HTTP_200_OK, data=CustomLectureViewSerializer(custom_lecture, many=True).data)
+        return Response(status=status.HTTP_200_OK, data={"custom_lectures": CustomLectureViewSerializer(custom_lecture, many=True).data})
 
 
     def get_queryset(self):
