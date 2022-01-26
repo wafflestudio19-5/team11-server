@@ -62,8 +62,7 @@ class MessageCreateSerializer(serializers.ModelSerializer):
         if user1 == user2:
             raise CustomException("자신에게 쪽지를 보낼 수 없습니다.", status.HTTP_400_BAD_REQUEST)
 
-        message_room, created = MessageRoom.objects.get_or_create(article_id=article_id, user1=user1, user2=user2, is_anonymous=is_anonymous)
-        message_room.user2_unread = 1;
+        message_room, created = MessageRoom.objects.get_or_create(article_id=article_id, user1=user1, user2=user2, is_anonymous=is_anonymous, user2_unread=1)
         if created==True:
             Message.objects.create(
                 message_room=message_room, 
@@ -141,6 +140,10 @@ class MessageSerializer(serializers.ModelSerializer):
         sender = self.context['request'].user
         validated_data['sender'] = sender
         validated_data['receiver'] = message_room.other_user(sender)
+        other_user_unread = message_room.str_other_user_unread(sender)
+        unread_count = message_room.other_user_unread(sender)+1
+        setattr(message_room, other_user_unread, unread_count)
+        message_room.save()
         return super().create(validated_data)
         
     def get_created_at(self, obj):

@@ -28,6 +28,7 @@ class MessageRoom(models.Model):
         # 같은 유저끼리의 MessageRoom이 중복 생성되지않도록 id를 sort하여 model instance를 create.
         if self.user1.id > self.user2.id:
             self.user1, self.user2 = self.user2, self.user1
+            self.user1_unread, self.user2_unread = self.user2_unread, self.user1_unread
         super(MessageRoom, self).save(*args, **kwargs)
     
     def other_user(self, user):
@@ -38,11 +39,35 @@ class MessageRoom(models.Model):
         else:
             return
 
+    def other_user_unread(self, user):
+        if self.user1 == user:
+            return self.user2_unread
+        elif self.user2 == user:
+            return self.user1_unread
+        else:
+            return
+    
+    def str_other_user_unread(self, user):
+        if self.user1 == user:
+            return "user2_unread"
+        elif self.user2 == user:
+            return "user1_unread"
+        else:
+            return
+
     def unread_count(self, user):
         if self.user1 == user:
             return self.user1_unread
         elif self.user2 == user:
             return self.user2_unread
+        else:
+            return
+
+    def str_unread_count(self, user):
+        if self.user1 == user:
+            return "user1_unread"
+        elif self.user2 == user:
+            return "user2_unread"
         else:
             return
 

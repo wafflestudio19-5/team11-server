@@ -54,6 +54,12 @@ class MessageRoomViewSet(viewsets.GenericViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail" : "wrong user for this message_room"})
 
         serializer = MessageRoomSerializer(message_room, context={'request': request})
+
+        # set unread to 0
+        message_room = serializer.instance
+        user_unread = message_room.str_unread_count(request.user)
+        setattr(message_room, user_unread, 0)
+        message_room.save()
         return Response(status=status.HTTP_200_OK, data=serializer.data)
     
     #GET /message_room/
