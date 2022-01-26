@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 
 from rest_framework_jwt.views import VerifyJSONWebTokenSerializer
 
+from common.fcm_notification import send_push
 import logging
 logger = logging.getLogger('django')
 
@@ -67,6 +68,12 @@ class UserViewSet(viewsets.GenericViewSet):
     def list(self, request, pk=None):
         user = request.user
         
+        try:
+            fcm_token = user.fcm_token
+            send_push("test", user, fcm_token)
+        except Exception as e:
+            logger.debug(e)
+
         serializer = UserCreateSerializer(user, context={'request': request})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
         # return Response(
@@ -223,3 +230,18 @@ class UserUpdateProfileImageView(viewsets.GenericViewSet):
 
     def list(self, request, pk=None):
         return Response({"detail" : "profile_image"}, status = status.HTTP_200_OK)
+
+class UserFCMTokenView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def post(self, request):
+        user = request.user
+        data = request.data.copy()
+        if (fcm_token:=data.get('fcm_token')) == None:
+            return Response({"error" : "fcm_token missing"}, status = status.HTTP_400_BAD_REQUEST)
+        
+        User.objects.filter(fcm_token=fcm_token).update(fcm_token=None)
+        user.fcm_token = fcm_token
+        user.save()
+
+        return Response({"success" : True}, status = status.HTTP_200_OK)

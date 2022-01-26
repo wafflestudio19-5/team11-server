@@ -20,9 +20,10 @@ class Article(BaseModel):
 
 class UserArticle(BaseModel):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='user_article', null = True)
-    article = models.ForeignKey(Article, on_delete=models.SET_NULL, related_name='user_article', null = True)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='user_article', null = False)
     like = models.BooleanField(default = False, null = False)
     scrap = models.BooleanField(default = False, null = False)
+    subscribe = models.BooleanField(default = False, null = False)
 
 class ImageArticle(BaseModel):
     image = models.ImageField(upload_to = upload_image, editable = False, null = False)

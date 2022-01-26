@@ -34,8 +34,9 @@ class ArticleViewSet(viewsets.GenericViewSet):
         data['board'] = board_id
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
-
         article = serializer.save()
+
+        user_article = UserArticle.objects.create(article=article, user=request.user, subscribe=True)
 
         return Response(status=status.HTTP_200_OK, data={"success" : True, "article_id" : article.id})
 
@@ -249,7 +250,7 @@ class UserArticleView(viewsets.GenericViewSet):
             serializer = self.get_serializer(user_article, data={}, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.update(user_article, serializer.validated_data)
-        return self.get_response(article, user_article.scrap)
+        return self.get_response(article, user_article)
 
     def get_response(self, article):
         return Response(status=status.HTTP_200_OK)
@@ -257,7 +258,7 @@ class UserArticleView(viewsets.GenericViewSet):
 
 
 class UserArticleLikeView(UserArticleView):
-    def get_response(self, article, scrap):
+    def get_response(self, article, user_article):
         return Response(status=status.HTTP_200_OK,
                         data={
                             "like": UserArticle.objects.filter(article=article, like=True).count(),
@@ -267,10 +268,19 @@ class UserArticleLikeView(UserArticleView):
 
 
 class UserArticleScrapView(UserArticleView):
-    def get_response(self, article, scrap):
+    def get_response(self, article, user_article):
         return Response(status=status.HTTP_200_OK,
                         data={
                             "scrap": UserArticle.objects.filter(article=article, scrap=True).count(),
-                            "detail": "이 글을 스크랩하였습니다." if scrap else "스크랩을 취소하였습니다."
+                            "detail": "이 글을 스크랩하였습니다." if user_article.scrap else "스크랩을 취소하였습니다."
+                            }
+                        )
+
+class UserArticleSubscribeView(UserArticleView):
+    def get_response(self, article, user_article):
+        return Response(status=status.HTTP_200_OK,
+                        data={
+                            "subscribe": user_article.subscribe,
+                            "detail": "댓글 알림을 켰습니다." if user_article.subscribe else "댓글 알림을 껐습니다."
                             }
                         )

@@ -9,11 +9,17 @@ from rest_framework.decorators import action, parser_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from user.models import User
 from board.models import Board
-from article.models import Article
+from article.models import Article, UserArticle
 from comment.models import Comment, UserComment
 
 from .serializers import CommentCreateSerializer, CommentSerializer, UserCommentSerializer
+
+from common.fcm_notification import send_push
+
+import logging
+logger = logging.getLogger('django')
 
 class CommentViewSet(viewsets.GenericViewSet):
     serializer_class = CommentCreateSerializer
@@ -34,6 +40,28 @@ class CommentViewSet(viewsets.GenericViewSet):
         serializer = CommentCreateSerializer(data=data, context={'request': request, 'article_id': article_id})
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
+
+        if comment.is_subcomment == True:
+            # parent 댓글 구독한 사람에게 알림 전송
+            try:
+                uc = UserComment.objects.filter(comment=comment.parent, subscribe=True).exclude(user=request.user)
+                fcm_tokens = User.objects.filter(user_comment__in=uc, fcm_token__isnull=False).values("fcm_token")
+                for fcm_token in fcm_tokens:
+                    logger.debug(fcm_token)
+                    send_push("new_subcomment", comment, fcm_token['fcm_token'])
+            except Exception as e:
+                logger.debug(e)
+        else:
+            user_comment = UserComment.objects.create(comment=comment, user=request.user, subscribe=True)
+            # 게시글 구독한 사람에게 알림 전송
+            try:
+                ua = UserArticle.objects.filter(article=article_id, subscribe=True).exclude(user=request.user)
+                fcm_tokens = User.objects.filter(user_article__in=ua, fcm_token__isnull=False).values("fcm_token")
+                for fcm_token in fcm_tokens:
+                    logger.debug(fcm_token)
+                    send_push("new_comment", comment, fcm_token['fcm_token'])
+            except Exception as e:
+                logger.debug(e)
 
         return Response(status=status.HTTP_200_OK, data={"success" : True, "comment_id" : comment.id})
 
@@ -85,7 +113,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         
         return Response(status=status.HTTP_200_OK, data={"comments" : CommentSerializer(comments, context = {'request' : request}, many=True).data})
 
-class UserCommentLikeView(viewsets.GenericViewSet):
+class UserCommentView(viewsets.GenericViewSet):
     serializer_class = UserCommentSerializer
 
     def create(self, request, comment_id):
@@ -105,9 +133,22 @@ class UserCommentLikeView(viewsets.GenericViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.update(user_comment, serializer.validated_data)
 
+        return self.get_response(comment, user_comment)
+
+class UserCommentLikeView(UserCommentView):
+    def get_response(self, comment, user_comment):
         return Response(status=status.HTTP_200_OK,
                         data={
                             "like": UserComment.objects.filter(comment = comment, like = True).count(),
                             "detail": "이 댓글을 공감하였습니다."
+                            }
+                        )
+
+class UserCommentSubscribeView(UserCommentView):
+    def get_response(self, comment, user_comment):
+        return Response(status=status.HTTP_200_OK,
+                        data={
+                            "subscribe": user_comment.subscribe,
+                            "detail": "대댓글 알림을 켰습니다." if user_comment.subscribe else "대댓글 알림을 껐습니다."
                             }
                         )

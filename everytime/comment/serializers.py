@@ -50,6 +50,7 @@ class CommentSerializer(serializers.ModelSerializer):
     user_nickname = serializers.SerializerMethodField()
     user_image = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
+    has_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -64,6 +65,7 @@ class CommentSerializer(serializers.ModelSerializer):
             'is_writer',
             'user_nickname', 
             'user_image',
+            'has_subscribed',
         )
 
     def get_is_mine(self, obj):
@@ -97,21 +99,30 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_like_count(self, obj):
         return UserComment.objects.filter(comment = obj, like = True).count()
 
+    def get_has_subscribed(self, obj):
+        return bool(UserComment.objects.get_or_none(user=self.context['request'].user, subscribe=True, comment=obj))
 
 class UserCommentSerializer(serializers.ModelSerializer):
     like = serializers.BooleanField(required=False)
-    #comment_id = serializers.IntegerField(required=False)
+    subscribe = serializers.BooleanField(required=False)
 
     class Meta:
         model = UserComment
-        fields = ('id', 'like',)
+        fields = ('id', 'like', 'subscribe',)
 
     def validate(self, data):
+        action = self.context['view'].basename 
         if self.instance == None:
-            return {'like' : True}
+            if action == 'comment_like':
+                return {'like' : True}
+            elif action == 'comment_subscribe':
+                return {'subscribe' : True}
+            return {}
         else:
-            if self.instance.like == True:
+            if action == 'comment_like' and self.instance.like == True:
                 raise CustomException("이미 공감한 댓글입니다.", status.HTTP_400_BAD_REQUEST)
+            elif action == 'comment_subscribe':
+                return {'subscribe' : not self.instance.subscribe}
             return {}
 
     def create(self, validated_data):

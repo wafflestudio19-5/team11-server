@@ -21,5 +21,6 @@ class Comment(BaseModel):
 
 class UserComment(BaseModel):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='user_comment', null = True)
-    comment = models.ForeignKey(Comment, on_delete=models.SET_NULL, related_name='user_comment', null = True)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='user_comment', null = False)
     like = models.BooleanField(default = False, null = False)
+    subscribe = models.BooleanField(default = False, null = False)

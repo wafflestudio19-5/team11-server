@@ -85,6 +85,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     f_created_at = serializers.SerializerMethodField()
     has_scraped = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
+    has_subscribed = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
     is_question = serializers.BooleanField()
 
@@ -108,6 +109,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'f_created_at',
             'has_scraped',
             'has_liked',
+            'has_subscribed',
             'images',
         )
 
@@ -161,6 +163,9 @@ class ArticleSerializer(serializers.ModelSerializer):
     def get_has_liked(self, obj):
         return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, like=True, article=obj))
 
+    def get_has_subscribed(self, obj):
+        return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, subscribe=True, article=obj))
+
     def get_images(self, obj):
         images = ImageArticle.objects.filter(article = obj)
         return ImageArticleSerializer(images, many = True).data
@@ -179,10 +184,11 @@ class ArticleWithCommentSerializer(ArticleSerializer):
 class UserArticleSerializer(serializers.ModelSerializer):
     like = serializers.BooleanField(required=False)
     scrap = serializers.BooleanField(required=False)
+    subscribe = serializers.BooleanField(required=False)
 
     class Meta:
         model = UserArticle
-        fields = ('id', 'like', 'scrap',)
+        fields = ('id', 'like', 'scrap', 'subscribe',)
 
     def validate(self, data):
         action = self.context['view'].basename 
@@ -191,12 +197,16 @@ class UserArticleSerializer(serializers.ModelSerializer):
                 return {'like' : True}
             elif action == 'article_scrap':
                 return {'scrap' : True}
+            elif action == 'article_subscribe':
+                return {'subscribe' : True}
             return {}
         else:
             if action == 'article_like' and self.instance.like == True:
                 raise CustomException("이미 공감한 글입니다.", status.HTTP_400_BAD_REQUEST)
             elif action == 'article_scrap':
                 return {'scrap' : not self.instance.scrap} # scrap과 unscrap 구현
+            elif action == 'article_subscribe':
+                return {'subscribe' : not self.instance.subscribe}
             return {}
 
     def create(self, validated_data):
