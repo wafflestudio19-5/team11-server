@@ -59,8 +59,8 @@ class ScheduleViewSet(viewsets.GenericViewSet):
         if not schedule:
             return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "wrong_id", "detail": "시간표가 존재하지 않습니다."})
 
-        schedule.last_visit = datetime.datetime.now()
-        schedule.save()
+        #schedule.last_visit = datetime.datetime.now()
+        #schedule.save()
         serializer = ScheduleViewSerializer(schedule, context={'request': request})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
