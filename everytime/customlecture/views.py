@@ -108,7 +108,7 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND, data=schedule)
 
 
-        serializer = CustomLecturePutSerializer(custom_lecture, data=request.data)
+        serializer = CustomLecturePutSerializer(custom_lecture, data=request.data, context={'request': request, 'custom_lecture': custom_lecture})
         serializer.is_valid(raise_exception=True)
         serializer.update(custom_lecture, serializer.validated_data)
 

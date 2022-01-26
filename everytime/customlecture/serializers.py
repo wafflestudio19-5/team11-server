@@ -8,7 +8,7 @@ from comment.models import Comment
 from .models import *
 from comment.serializers import CommentSerializer
 from functools import reduce
-
+from django.db.models import Q
 from common.custom_exception import CustomException
 
 class CustomLectureCreateSerializer(serializers.ModelSerializer): # lecture_id 기반 custom_lecture
@@ -142,21 +142,69 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lectu
 class CustomLecturePutSerializer(serializers.ModelSerializer):
     nickname = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
     memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
+    time_location = serializers.ListField(required=False)
 
     class Meta:
         model = CustomLecture
-        fields = ('nickname', 'memo')
+        fields = ('nickname', 'memo', 'time_location')
 
-    #def validate(self, data):
+    def validate(self, data):
 
-        #
-    def update(self, instance, validated_data):
+        if "time_location" in data:
+            custom_lecture = self.context['custom_lecture']
 
-        if not validated_data['nickname']:
-            if not instance.lecture:
-                raise CustomException("수업명을 입력해 주세요. ", status.HTTP_400_BAD_REQUEST)
+            custom_lectures = CustomLecture.objects.filter(schedule=custom_lecture.schedule)
+            custom_lectures = custom_lectures.filter(~Q(id=custom_lecture.id))
+            if custom_lectures:
+                current_time = reduce(lambda s1, s2: s1.union(s2), [i.get_time() for i in custom_lectures])
             else:
-                validated_data['nickname'] = instance.lecture.subject_professor.subject_name
+                current_time = set()
+
+            for i in data['time_location']:
+                time = i['time']
+
+                try:
+                    new_time = CustomLecture.string_to_time_set(time)
+                except Exception:
+                    raise CustomException("time의 형식이 잘못되었습니다. ", status.HTTP_400_BAD_REQUEST)
+
+                for nt in new_time:
+                    for ct in current_time:
+                        if nt[0] != ct[0]:
+                            continue
+                        if ct[2] <= nt[1] or nt[2] <= ct[1]:
+                            continue
+                        raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_409_CONFLICT)
+        
+        return data
+        
+    def update(self, instance, validated_data):
+        if "time_location" in validated_data:
+            time_location = validated_data.pop('time_location')
+            validated_data['time'] = validated_data['location'] = ""
+
+            for i in time_location:
+                time = i['time']
+                location = i['location']
+                if not location:
+                    location = ""
+                #time = time_location['time'+str(i)]
+                #location = time_location['location'+str(i)]
+
+                validated_data['time'] += (time + '/')
+                validated_data['location'] += (location + '\t')
+
+            validated_data['time'] = validated_data['time'][:-1]
+            validated_data['location'] = validated_data['location'][:-1]
+
+        if 'nickname' in validated_data:
+            if not validated_data['nickname']:
+                if not instance.lecture:
+                    raise CustomException("수업명을 입력해 주세요. ", status.HTTP_400_BAD_REQUEST)
+                else:
+                    validated_data['nickname'] = instance.lecture.subject_professor.subject_name
+        
+        print(validated_data)
         result = super().update(instance, validated_data)
         instance.save()
         return result
