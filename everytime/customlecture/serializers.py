@@ -60,24 +60,23 @@ class CustomLectureCreateSerializer(serializers.ModelSerializer): # lecture_id �
         lecture = Lecture.objects.get(id=validated_data['lecture'])
         validated_data['lecture'] = lecture
 
-        validated_data['title'] = lecture.subject_professor.subject_name
         validated_data['professor'] = lecture.subject_professor.professor
         validated_data['time'] = lecture.time
         validated_data['location'] = lecture.location
+        validated_data['nickname'] = lecture.subject_professor.subject_name
 
         return CustomLecture.objects.create(**validated_data)
 
 class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lecture에 없는 수업 생성
 
-    nickname = serializers.CharField(max_length=100, required=False)
-    title = serializers.CharField(max_length=100)
+    nickname = serializers.CharField(max_length=100)
     professor = serializers.CharField(max_length=100)
     time_location = serializers.JSONField()
     memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = CustomLecture
-        fields = ('nickname', 'title', 'professor', 'time', 'location', 'memo', 'time_location')
+        fields = ('nickname', 'professor', 'time', 'location', 'memo', 'time_location')
 
     def validate(self, data):
         user = self.context['request'].user
@@ -135,15 +134,23 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lectu
         return CustomLecture.objects.create(**validated_data)
 
 class CustomLecturePutSerializer(serializers.ModelSerializer):
-    nickname = serializers.CharField(max_length=100, required=False)
+    nickname = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
     memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = CustomLecture
         fields = ('nickname', 'memo')
 
-    def update(self, instance, validated_data):
+    #def validate(self, data):
+
         #
+    def update(self, instance, validated_data):
+
+        if not validated_data['nickname']:
+            if not instance.lecture:
+                raise CustomException("수업명을 입력해 주세요. ", status.HTTP_400_BAD_REQUEST)
+            else:
+                validated_data['nickname'] = instance.lecture.subject_professor.subject_name
         result = super().update(instance, validated_data)
         instance.save()
         return result
@@ -151,7 +158,6 @@ class CustomLecturePutSerializer(serializers.ModelSerializer):
 class CustomLectureViewSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     lecture = serializers.SerializerMethodField()
-    title = serializers.CharField()
     nickname = serializers.CharField()
     professor = serializers.CharField()
     time = serializers.CharField()
@@ -161,7 +167,8 @@ class CustomLectureViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Schedule
-        fields = ('id', 'lecture', 'title', 'professor', 'time', 'location', 'memo', 'time_location', 'nickname')
+        fields = ('id', 'lecture', 'nickname', 'professor', 'time', 'location', 'memo', 'time_location')
+
 
     def get_lecture(self, obj):
         if not obj.lecture:
