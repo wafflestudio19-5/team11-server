@@ -9,6 +9,10 @@ from .models import Message, MessageRoom
 from board.models import Board
 from article.models import Article
 from comment.models import Comment
+from comment.serializers import CommentSerializer
+
+import logging
+logger = logging.getLogger('django')
 
 def time_formatting(timezone_obj):
     cur_year = timezone.localtime().year
@@ -40,9 +44,8 @@ class MessageCreateSerializer(serializers.ModelSerializer):
                 is_anonymous = obj.is_anonymous
                 board = obj.board
                 user2 = obj.writer
-                user_nickname = "익명" if obj.is_anonymous else user2.nickname
                 text = obj.title if bool(obj.title) else obj.text
-                text = f"{board.name}에서 작성된 {user_nickname}의 글을 통해 시작된 쪽지입니다.\n" \
+                text = f"{board.name}에서 작성된 글을 통해 시작된 쪽지입니다.\n" \
                        + f"글 내용: {text[0:50]}"
             except:
                 raise CustomException("article_id가 잘못되었습니다.", status.HTTP_400_BAD_REQUEST)
@@ -52,9 +55,9 @@ class MessageCreateSerializer(serializers.ModelSerializer):
                 is_anonymous = obj.is_anonymous
                 board = obj.article.board
                 user2 = obj.commenter
-                user_nickname = "익명" if obj.is_anonymous else user2.nickname
+                user_nickname = CommentSerializer.get_user_nickname(obj, obj)
                 text = obj.text
-                text = f"{board.name}에서 작성된 댓글을 통해 시작된 쪽지입니다.\n \
+                text = f"{board.name}에서 작성된 {user_nickname}의 댓글을 통해 시작된 쪽지입니다.\n \
                         글 내용: {text[0:50]}"
                 article_id = obj.article.id
             except:
@@ -62,8 +65,11 @@ class MessageCreateSerializer(serializers.ModelSerializer):
         if user1 == user2:
             raise CustomException("자신에게 쪽지를 보낼 수 없습니다.", status.HTTP_400_BAD_REQUEST)
 
-        message_room, created = MessageRoom.objects.get_or_create(article_id=article_id, user1=user1, user2=user2, is_anonymous=is_anonymous, user2_unread=1)
-        if created==True:
+        try:
+            message_room = MessageRoom.objects.get(article_id=article_id, user1=user1, user2=user2, is_anonymous=is_anonymous)
+        except Exception as e:
+            logger.debug(e)
+            message_room = MessageRoom.objects.create(article_id=article_id, user1=user1, user2=user2, is_anonymous=is_anonymous, user2_unread=1)
             Message.objects.create(
                 message_room=message_room, 
                 is_announce=True,

@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from rest_framework import serializers, status
 from comment.models import Comment, UserComment
-from article.models import Article
+from article.models import Article, UserArticle
 
 from django.utils import timezone
 from common.custom_exception import CustomException
@@ -80,8 +80,13 @@ class CommentSerializer(serializers.ModelSerializer):
         if obj.is_active == False:
             return "(삭제)"
         if obj.is_anonymous is True:
-            if obj.is_writer is True:
+            user_article = UserArticle.objects.get_or_none(article=obj.article, user=obj.commenter)
+            if user_article==None:
+                return '익명'
+            elif obj.is_writer is True and user_article.nickname_code == 0:
                 return '익명(글쓴이)'
+            elif user_article.nickname_code != None:
+                return f'익명{str(user_article.nickname_code)}'
             else:
                 return '익명'
         else:

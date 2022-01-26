@@ -24,6 +24,12 @@ class UserArticle(BaseModel):
     like = models.BooleanField(default = False, null = False)
     scrap = models.BooleanField(default = False, null = False)
     subscribe = models.BooleanField(default = False, null = False)
+    nickname_code = models.PositiveSmallIntegerField(null = True)
+    
+    # nickname_code - 익명 표시
+    # null : "익명"
+    # 0 : 익명(글쓴이)
+    # 1~ : 익명 1
 
 class ImageArticle(BaseModel):
     image = models.ImageField(upload_to = upload_image, editable = False, null = False)
