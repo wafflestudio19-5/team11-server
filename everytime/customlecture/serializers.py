@@ -71,7 +71,7 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lectu
 
     nickname = serializers.CharField(max_length=100)
     professor = serializers.CharField(max_length=100)
-    time_location = serializers.JSONField()
+    time_location = serializers.ListField()
     memo = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
@@ -94,9 +94,11 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lectu
         else:
             current_time = set()
 
-        time_location = data['time_location']
-        for i in range(1, len(time_location)//2 + 1):
-            time = time_location['time'+str(i)]
+        #time_location = data['time_location']
+        #for i in range(1, len(time_location)//2 + 1):
+        for i in data['time_location']:
+            time = i['time']
+            #time = time_location['time'+str(i)]
             # location = time_location['location'+str(i)]
 
             try:
@@ -121,9 +123,11 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lectu
         time_location = validated_data.pop('time_location')
         validated_data['time'] = validated_data['location'] = ""
 
-        for i in range(1, len(time_location)//2 + 1):
-            time = time_location['time'+str(i)]
-            location = time_location['location'+str(i)]
+        for i in time_location:
+            time = i['time']
+            location = i['location']
+            #time = time_location['time'+str(i)]
+            #location = time_location['location'+str(i)]
 
             validated_data['time'] += (time + '/')
             validated_data['location'] += (location + '\t')
