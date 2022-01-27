@@ -15,19 +15,19 @@ class InformationCreateSerializer(serializers.ModelSerializer):
     subject_professor = serializers.IntegerField()
     year = serializers.IntegerField()
     season = serializers.IntegerField()
-    test_number = serializers.IntegerField()  # 기타는 0번
-    test_method = serializers.CharField(max_length=150)
+    test_type = serializers.IntegerField()  # 기타는 0번
+    test_method = serializers.CharField(max_length=100)
     strategy = serializers.CharField(max_length=1000)
-    problems = serializers.CharField(max_length=1000)
+    problems = serializers.ListField(required=False)
 
     class Meta:
         model = Information
-        fields = ('subject_professor', 'year', 'season',
-                  'test_number', 'test_method', 'strategy', 'problems')
+        fields = ('subject_professor', 'year', 'season', 'test_method', 'test_type', 'strategy', 'problems')
+        extra_fields = ['problems']
 
     def validate(self, data):
         user = self.context['request'].user
-        year, season, test_number= data['year'], data['season'], data['test_number']
+        year, season, test_method= data['year'], data['season'], data['test_method']
 
         if not (subject_professor := SubjectProfessor.objects.get_or_none(id=data['subject_professor'])):
             raise CustomException("존재하지 않는 SubjectProfessor 입니다.", status.HTTP_404_NOT_FOUND)
@@ -35,7 +35,7 @@ class InformationCreateSerializer(serializers.ModelSerializer):
             raise CustomException("Professor가 NULL인 SubjectProfessor입니다. ", status.HTTP_400_BAD_REQUEST)
         if not Lecture.objects.filter(subject_professor=subject_professor, year=year, season=season):
             raise CustomException("해당 학기에 강의가 없습니다. ", status.HTTP_404_NOT_FOUND)
-        if Information.objects.filter(user=user, year=year, season=season, test_number=test_number, subject_professor=subject_professor):
+        if Information.objects.filter(user=user, year=year, season=season, subject_professor=subject_professor, test_method=test_method):
             raise CustomException("이미 시험정보를 작성한 적이 있습니다.", status.HTTP_409_CONFLICT)
 
         return data
@@ -44,6 +44,18 @@ class InformationCreateSerializer(serializers.ModelSerializer):
         validated_data['subject_professor'] = SubjectProfessor.objects.get(id=validated_data['subject_professor'])
         validated_data['user'] = self.context['request'].user
 
+        problems = ""
+
+        if 'problems' in validated_data:
+            problem_list = validated_data.pop('problems')
+            if len(problem_list) > 0:
+                problems += problem_list[0]
+
+            for i in range(1, len(problem_list)):
+                problems += "\t" + problem_list[i]
+
+        validated_data['problems'] = problems
+
         return Information.objects.create(**validated_data)
 
 class InformationViewSerializer(serializers.ModelSerializer):
@@ -51,14 +63,14 @@ class InformationViewSerializer(serializers.ModelSerializer):
     subject_professor_id = serializers.SerializerMethodField()
     year = serializers.IntegerField()
     season = serializers.SerializerMethodField()
-    test_number = serializers.IntegerField()  # 기타는 0번
-    test_method = serializers.SerializerMethodField()
+    test_method = serializers.SerializerMethodField()  # 기타는 0번
+    test_type = serializers.SerializerMethodField()
     strategy = serializers.CharField(max_length=1000)
-    problems = serializers.CharField(max_length=1000)
+    problems = serializers.SerializerMethodField()
 
     class Meta:
         model = Information
-        fields = ('id', 'subject_professor_id', 'year', 'season', 'test_number', 'test_method', 'strategy', 'problems')
+        fields = ('id', 'subject_professor_id', 'year', 'season', 'test_type', 'test_method', 'strategy', 'problems')
 
 
     def get_subject_professor_id(self, obj):
@@ -70,7 +82,12 @@ class InformationViewSerializer(serializers.ModelSerializer):
     def get_test_method(self, obj):
         data = ""
         for i in obj.test_method.split(' '):
-            data += (Information.TestMethodCode[int(i)]) + ", "
+            data += i + ", "
         data = data[:-2]
         return data
 
+    def get_test_type(self, obj):
+        return Information.TestType[obj.test_type]
+
+    def get_problems(self, obj):
+        return obj.problems.split('\t')
