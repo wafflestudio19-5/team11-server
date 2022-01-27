@@ -14,6 +14,7 @@ class MessageRoom(models.Model):
     user1_unread = models.PositiveIntegerField(default=0, null=False)
     user2_unread = models.PositiveIntegerField(default=0, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    last_message_at = models.DateTimeField(auto_now=True)
     is_anonymous = models.BooleanField(default=True)
 
     def __eq__(self, other):
@@ -82,3 +83,7 @@ class Message(models.Model):
     receiver_active = models.BooleanField(default=True)
     text = models.CharField(max_length=128, null = False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        super(Message, self).save(*args, **kwargs)
+        self.message_room.save()

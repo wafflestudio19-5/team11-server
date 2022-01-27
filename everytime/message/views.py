@@ -86,7 +86,7 @@ class MessageRoomViewSet(viewsets.GenericViewSet):
     #GET /message_room/
     def list(self, request):
         q = Q(user1=request.user)|Q(user2=request.user)
-        message_room = self.get_queryset().filter(q).order_by('-id')
+        message_room = self.get_queryset().filter(q).order_by('-last_message_at')
         serializer = MessageRoomListSerializer(message_room, context={'request': request}, many=True)
 
         q = Q(user1=request.user, user1_unread=0)|Q(user2=request.user, user2_unread=0)
