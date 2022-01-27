@@ -78,11 +78,21 @@ def filter_lectures(lectures, query):
         elif len(query_department) == 2:
             college, department = query_department
             lectures = lectures.filter(college__name=college, department__name=department)
+        elif len(query_department) > 2:
+            college = query_department[0]
+            department = ' '.join(query_department[1:])
+            lectures = lectures.filter(college__name=college, department__name=department)
 
     if 'grade' in query:
         try:
             grade = [int(i) for i in query.get('grade').split(' ')]
-            lectures = lectures.filter(grade__in=grade)
+            if 5 in grade:
+                temp = lectures.exclude(grade__in=[1,2,3,4])
+                grade.remove(5)
+                temps = lectures.filter(grade__in=grade)
+                lectures = temp | temps
+            else:
+                lectures = lectures.filter(grade__in=grade)
         except Exception:
             lectures = Lecture.objects.none()
 
@@ -96,13 +106,19 @@ def filter_lectures(lectures, query):
     if 'credit' in query:
         try:
             credit = [int(i) for i in query.get('credit').split(' ')]
-            lectures = lectures.filter(credit__in=credit)
+            if 4 in credit:
+                temp = lectures.filter(credit__gt=3)
+                credit.remove(4)
+                temps = lectures.filter(credit__in=credit)
+                lectures = temp | temps
+            else:
+                lectures = lectures.filter(credit__in=credit)
         except Exception:
             lectures = Lecture.objects.none()
 
     if 'category' in query:
         try:
-            category = [int(i) for i in query.get('category').split(' ')]
+            category = [Lecture.CategoryCode[i] for i in query.get('category').split(' ')]
             lectures = lectures.filter(category__in=category)
         except Exception:
             lectures = Lecture.objects.none()
