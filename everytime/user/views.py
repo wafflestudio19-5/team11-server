@@ -13,6 +13,8 @@ from django.core.exceptions import ValidationError
 from rest_framework_jwt.views import VerifyJSONWebTokenSerializer
 
 from common.fcm_notification import send_push
+from article.views import ArticleViewSet
+
 import logging
 logger = logging.getLogger('django')
 
@@ -250,11 +252,20 @@ class UserNotificationViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     queryset = UserNotification.objects.all()
 
+    #GET /notification/
     def list(self, request, pk=None):
         user = request.user
         
         queryset = self.queryset.filter(user=request.user).order_by('-id')
         return self.paginate(request, queryset)
+
+    #GET /notification/{pk}/
+    def retrieve(self, request, pk):
+        if not (notification := UserNotification.objects.get(id=pk)):
+            return Response(status=status.HTTP_404_NOT_FOUND, data={ "detail":"wrong_notification_id"})
+        notification.unread = False
+        notification.save()
+        return ArticleViewSet.retrieve(self, request,notification.board_id, notification.article_id)
 
     def paginate(self, request, queryset):
         page = self.paginate_queryset(queryset)

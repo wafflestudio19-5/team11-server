@@ -75,3 +75,4 @@ class UserNotification(models.Model):
     board_name = models.CharField(max_length=100, null = False)
     article_id = models.IntegerField(null=True)
     text = models.CharField(max_length=128, blank = False)
+    unread = models.BooleanField(default=True)
