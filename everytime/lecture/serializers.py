@@ -57,6 +57,7 @@ class SubjectProfessorSerializer(serializers.ModelSerializer):
         data['team_activity'] = Review.TeamActivityCode[data['team_activity']]
         data['grading'] = Review.GradingCode[data['grading']]
         data['attendance'] = Review.AttendanceCode[data['attendance']]
+        data['test_count'] = str(data['test_count'])
 
         return data
 
