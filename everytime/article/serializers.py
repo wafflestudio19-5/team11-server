@@ -178,7 +178,7 @@ class ArticleWithCommentSerializer(ArticleSerializer):
                 + ('comments',)
 
     def get_comments(self, article):
-        comments = Comment.objects.filter(article=article).order_by('parent')
+        comments = Comment.objects.filter(article=article).order_by('parent', 'id')
         return CommentSerializer(comments, context=self.context, many=True).data
 
 class UserArticleSerializer(serializers.ModelSerializer):
