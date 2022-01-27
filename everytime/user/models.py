@@ -68,3 +68,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.email
+
+class UserNotification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_notification', null = False)
+    article_id = models.IntegerField(null=True)
+    text = models.CharField(max_length=128, blank = False)

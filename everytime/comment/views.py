@@ -16,7 +16,7 @@ from comment.models import Comment, UserComment
 
 from .serializers import CommentCreateSerializer, CommentSerializer, UserCommentSerializer
 
-from common.fcm_notification import send_push
+from common.fcm_notification import send_push, create_notification
 
 import logging
 logger = logging.getLogger('django')
@@ -42,24 +42,37 @@ class CommentViewSet(viewsets.GenericViewSet):
         comment = serializer.save()
 
         if comment.is_subcomment == True:
-            # parent 댓글 구독한 사람에게 알림 전송
+            # parent 댓글 구독한 사람에게 알림 전송 / 알림 log 기록
             try:
-                uc = UserComment.objects.filter(comment=comment.parent, subscribe=True).exclude(user=request.user)
-                fcm_tokens = User.objects.filter(user_comment__in=uc, fcm_token__isnull=False).values("fcm_token")
+                uc = UserComment.objects.filter(comment=comment.parent).exclude(user=request.user)
+                users = User.objects.filter(user_comment__in=uc)
+                for user in users:
+                    create_notification("new_subcomment", comment, user)
+
+                uc = uc.filter(subscribe=True)
+                fcm_tokens = users.filter(fcm_token__isnull=False).values("fcm_token")
                 for fcm_token in fcm_tokens:
                     logger.debug(fcm_token)
                     send_push("new_subcomment", comment, fcm_token['fcm_token'])
+
             except Exception as e:
                 logger.debug(e)
+            
         else:
             user_comment = UserComment.objects.create(comment=comment, user=request.user, subscribe=True)
-            # 게시글 구독한 사람에게 알림 전송
+            # 게시글 구독한 사람에게 알림 전송 / 알림 log 기록
             try:
-                ua = UserArticle.objects.filter(article=article_id, subscribe=True).exclude(user=request.user)
-                fcm_tokens = User.objects.filter(user_article__in=ua, fcm_token__isnull=False).values("fcm_token")
+                ua = UserArticle.objects.filter(article=article_id).exclude(user=request.user)
+                users = User.objects.filter(user_article__in=ua)
+                for user in users:
+                    create_notification("new_comment", comment, user)
+
+                ua = ua.filter(subscribe=True)
+                fcm_tokens = users.filter(fcm_token__isnull=False).values("fcm_token")
                 for fcm_token in fcm_tokens:
                     logger.debug(fcm_token)
                     send_push("new_comment", comment, fcm_token['fcm_token'])
+                    
             except Exception as e:
                 logger.debug(e)
         

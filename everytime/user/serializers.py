@@ -4,7 +4,7 @@ from django.db.models import fields
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
 from university.models import University
-from user.models import User
+from user.models import User, UserNotification
 
 
 # 토큰 사용을 위한 기본 세팅
@@ -98,4 +98,8 @@ class UserLoginSerializer(serializers.Serializer):
             'token': jwt_token_of(user)
         }
 
+class UserNotificationSerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = UserNotification
+        fields = ('id', 'article_id', 'text',)

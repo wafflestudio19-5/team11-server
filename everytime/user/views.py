@@ -3,8 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from django.db import IntegrityError
-from user.serializers import UserCreateSerializer, UserLoginSerializer
-from user.models import User
+from user.serializers import UserCreateSerializer, UserLoginSerializer, UserNotificationSerializer
+from user.models import User, UserNotification
 from django.contrib.auth.models import update_last_login
 from django.http.response import Http404
 from django.contrib.auth.password_validation import validate_password
@@ -87,7 +87,7 @@ class UserViewSet(viewsets.GenericViewSet):
         #     }
         #     ,status=status.HTTP_200_OK)
 
-class UserDeleteViewset(viewsets.GenericViewSet):
+class UserDeleteViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     serializer_class = UserCreateSerializer
 
@@ -245,3 +245,22 @@ class UserFCMTokenView(APIView):
         user.save()
 
         return Response({"success" : True}, status = status.HTTP_200_OK)
+
+class UserNotificationViewSet(viewsets.GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated, )
+    queryset = UserNotification.objects.all()
+
+    def list(self, request, pk=None):
+        user = request.user
+        
+        queryset = self.queryset.filter(user=request.user).order_by('-id')
+        return self.paginate(request, queryset)
+
+    def paginate(self, request, queryset):
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = UserNotificationSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data) 
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
