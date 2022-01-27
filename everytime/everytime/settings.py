@@ -288,6 +288,11 @@ if "TEAM11_SERVER_ENV" in os.environ :
                 'level': 'DEBUG',
                 'propagate': True,
             },
+            'django.template': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
         },
     }
 
