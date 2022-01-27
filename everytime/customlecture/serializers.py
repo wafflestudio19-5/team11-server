@@ -113,6 +113,7 @@ class CustomLectureCreateSerializer_Custom(serializers.ModelSerializer): # lectu
                     if ct[2] <= nt[1] or nt[2] <= ct[1]:
                         continue
                     raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_409_CONFLICT)
+                current_time.add(nt)
 
         return data
 
@@ -175,6 +176,7 @@ class CustomLecturePutSerializer(serializers.ModelSerializer):
                         if ct[2] <= nt[1] or nt[2] <= ct[1]:
                             continue
                         raise CustomException("기존의 강의와 겹칩니다. ", status.HTTP_409_CONFLICT)
+                    current_time.add(nt)
         
         return data
         
