@@ -147,6 +147,7 @@ class LectureViewSerializer(LectureSerializer):
     id = serializers.IntegerField()
     subject_name = serializers.SerializerMethodField()
     professor = serializers.SerializerMethodField()
+    rate = serializers.SerializerMethodField()
     ####
     season = serializers.SerializerMethodField()
     ####
@@ -185,7 +186,16 @@ class LectureViewSerializer(LectureSerializer):
             return None
         return obj.college.name
 
-
+    def get_rate(self, obj):
+        reviews = Review.objects.filter(subject_professor=obj.subject_professor)
+        if len(reviews) == 0:
+            return 0
+        else:
+            score = 0
+            for review in reviews:
+                score += review.rating
+            score /= len(reviews)
+            return score
 
 class LectureViewSerializer_Mini(LectureViewSerializer):
     class Meta:
