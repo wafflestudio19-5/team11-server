@@ -27,7 +27,7 @@ class ReviewViewSet(viewsets.GenericViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND,
                             data={"error": "wrong_board_id", "detail": "SubjectProfessor가 존재하지 않습니다."})
 
-        data = request.data
+        data = request.data.copy()
         data['subject_professor'] = subject_professor_id
 
         serializer = ReviewCreateSerializer(data=data, context={'request': request})

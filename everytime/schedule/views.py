@@ -25,7 +25,7 @@ class ScheduleViewSet(viewsets.GenericViewSet):
 
     # POST /schedule/
     def create(self, request):
-        data = request.data
+        data = request.data.copy()
 
         serializer = ScheduleCreateSerializer(data=data, context={'request': request})
         valid = serializer.is_valid(raise_exception=True)

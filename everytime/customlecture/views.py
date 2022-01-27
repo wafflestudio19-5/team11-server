@@ -28,7 +28,7 @@ class CustomLectureViewSet(viewsets.GenericViewSet):
         else:
             schedule = Schedule.objects.get_or_none(id=schedule_id)
 
-        data = request.data
+        data = request.data.copy()
 
         if 'lecture' in data:
 
