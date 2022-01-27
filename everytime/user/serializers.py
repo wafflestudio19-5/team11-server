@@ -1,11 +1,20 @@
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.models import update_last_login
 from django.db.models import fields
+from django.utils import timezone
+
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
 from university.models import University
 from user.models import User, UserNotification
 
+def time_formatting(timezone_obj):
+    cur_year = timezone.localtime().year
+    obj_year = timezone_obj.year
+    if cur_year==obj_year:
+        return timezone_obj.strftime('%m/%d %H:%M')
+    else:
+        return timezone_obj.strftime('%y/%m/%d %H:%M')
 
 # 토큰 사용을 위한 기본 세팅
 User = get_user_model()
@@ -99,7 +108,12 @@ class UserLoginSerializer(serializers.Serializer):
         }
 
 class UserNotificationSerializer(serializers.ModelSerializer):
+    created_at = serializers.SerializerMethodField()
 
     class Meta:
         model = UserNotification
-        fields = ('id', 'board_id', 'board_name', 'article_id', 'unread', 'text',)
+        fields = ('id', 'board_id', 'board_name', 'article_id', 'unread', 'created_at', 'text',)
+
+    def get_created_at(self, obj):
+        local_created_at = timezone.localtime(obj.created_at)
+        return time_formatting(local_created_at)

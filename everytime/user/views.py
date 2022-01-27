@@ -1,6 +1,8 @@
 from rest_framework import serializers, status, viewsets, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import action
+
 from django.contrib.auth import authenticate
 from django.db import IntegrityError
 from user.serializers import UserCreateSerializer, UserLoginSerializer, UserNotificationSerializer
@@ -255,6 +257,8 @@ class UserNotificationViewSet(viewsets.GenericViewSet):
     #GET /notification/
     def list(self, request, pk=None):
         user = request.user
+        user.notification_unread = 0
+        user.save()
         
         queryset = self.queryset.filter(user=request.user).order_by('-id')
         return self.paginate(request, queryset)
@@ -265,7 +269,12 @@ class UserNotificationViewSet(viewsets.GenericViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "detail":"wrong_notification_id"})
         notification.unread = False
         notification.save()
-        return ArticleViewSet.retrieve(self, request,notification.board_id, notification.article_id)
+        return Response(status=status.HTTP_200_OK, data={'success': True})
+
+    #GET /notification/unread/
+    @action(methods=['get'], detail=False)
+    def unread(self, request):
+        return Response(status=status.HTTP_200_OK, data={'unread_count': request.user.notification_unread})
 
     def paginate(self, request, queryset):
         page = self.paginate_queryset(queryset)

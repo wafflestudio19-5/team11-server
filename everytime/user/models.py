@@ -58,6 +58,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=30, blank = False)
     profile_image = models.ImageField(upload_to = upload_image, editable = True, null = True)
     fcm_token = models.CharField(max_length=255, null=True)
+    notification_unread = models.PositiveIntegerField(default=0)
 
     # 해당 필드에 대한 설명은 부모 AbstractBaseUser 클래스 참고
     EMAIL_FIELD = 'email'
@@ -76,3 +77,4 @@ class UserNotification(models.Model):
     article_id = models.IntegerField(null=True)
     text = models.CharField(max_length=128, blank = False)
     unread = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)

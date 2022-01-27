@@ -49,3 +49,6 @@ def create_notification(type, obj, user):
             article_id=article_id,
             text=title+": "+body
         )
+        user.notification_unread += 1
+        user.save()
+
