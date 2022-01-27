@@ -9,6 +9,11 @@ from rest_framework.response import Response
 from .models import Message, MessageRoom
 from .serializers import MessageCreateSerializer, MessageRoomSerializer, MessageRoomListSerializer, MessageSerializer
 
+from common.fcm_notification import send_push
+
+import logging
+logger = logging.getLogger('django')
+
 # Create your views here.
 class MessageViewSet(viewsets.GenericViewSet):
     serializer_class = MessageCreateSerializer
@@ -20,6 +25,14 @@ class MessageViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        
+        message = serializer.instance
+        try:
+            fcm_token = message.receiver.fcm_token
+            send_push("new_message", message, fcm_token)
+        except Exception as e:
+            logger.debug(e)
+
         return Response(status=status.HTTP_200_OK, data={"success" : True})
 
 class MessageRoomViewSet(viewsets.GenericViewSet):
@@ -42,6 +55,14 @@ class MessageRoomViewSet(viewsets.GenericViewSet):
         serializer = MessageSerializer(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        message = serializer.instance
+        try:
+            fcm_token = message.receiver.fcm_token
+            send_push("new_message", message, fcm_token)
+        except Exception as e:
+            logger.debug(e)
+            
         return Response(status=status.HTTP_200_OK, data={"success" : True})
 
     #GET /message_room/{pk}/

@@ -7,6 +7,9 @@ def get_content(type, obj):
     elif type == "new_subcomment":
         title = "새로운 대댓글이 달렸어요"
         body = obj.text
+    elif type =="new_message":
+        title = "새로운 쪽지가 왔어요"
+        body = obj.text
     elif type == "test":
         title = "test입니다."
         body = f"{obj.name}에게 알림보냄."
