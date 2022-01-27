@@ -35,7 +35,7 @@ class InformationCreateSerializer(serializers.ModelSerializer):
             raise CustomException("Professor가 NULL인 SubjectProfessor입니다. ", status.HTTP_400_BAD_REQUEST)
         if not Lecture.objects.filter(subject_professor=subject_professor, year=year, season=season):
             raise CustomException("해당 학기에 강의가 없습니다. ", status.HTTP_404_NOT_FOUND)
-        if Information.objects.filter(user=user, year=year, season=season, test_number=test_number):
+        if Information.objects.filter(user=user, year=year, season=season, test_number=test_number, subject_professor=subject_professor):
             raise CustomException("이미 시험정보를 작성한 적이 있습니다.", status.HTTP_409_CONFLICT)
 
         return data
