@@ -40,8 +40,12 @@ def create_notification(type, obj, user):
     title, body, article_id = get_content(type, obj)
 
     if article_id !=0 and user != None:
+        board_id = obj.article.board.id
+        board_name = obj.article.board.name
         UserNotification.objects.create(
             user=user,
+            board_id=board_id,
+            board_name=board_name,
             article_id=article_id,
             text=title+": "+body
         )

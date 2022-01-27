@@ -71,5 +71,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class UserNotification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_notification', null = False)
+    board_id = models.IntegerField(null=True)
+    board_name = models.CharField(max_length=100, null = False)
     article_id = models.IntegerField(null=True)
     text = models.CharField(max_length=128, blank = False)

@@ -102,4 +102,4 @@ class UserNotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserNotification
-        fields = ('id', 'article_id', 'text',)
+        fields = ('id', 'board_id', 'board_name', 'article_id', 'text',)
