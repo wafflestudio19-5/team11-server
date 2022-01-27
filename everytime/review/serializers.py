@@ -54,12 +54,17 @@ class ReviewViewSerializer(serializers.ModelSerializer):
     subject_professor_id = serializers.SerializerMethodField()
     year = serializers.IntegerField()
     season = serializers.SerializerMethodField()
+    homework = serializers.SerializerMethodField()
+    team_activity = serializers.SerializerMethodField()
+    grading = serializers.SerializerMethodField()
+    attendance = serializers.SerializerMethodField()
+    test_count = serializers.SerializerMethodField()
     rating = serializers.IntegerField()
     comment = serializers.CharField()
 
     class Meta:
         model = Review
-        fields = ('id', 'subject_professor_id', 'year', 'season', 'rating', 'comment')
+        fields = '__all__'
 
 
     def get_subject_professor_id(self, obj):
@@ -68,3 +73,17 @@ class ReviewViewSerializer(serializers.ModelSerializer):
     def get_season(self, obj):
         return Lecture.SeasonCode[obj.season]
 
+    def get_homework(self, obj):
+        return Review.HomeworkCode[obj.homework]
+    
+    def get_team_activity(self, obj):
+        return Review.TeamActivityCode[obj.team_activity]
+
+    def get_grading(self, obj):
+        return Review.GradingCode[obj.grading]
+    
+    def get_attendance(self, obj):
+        return Review.AttendanceCode[obj.attendance]
+
+    def get_test_count(self, obj):
+        return Review.TestCountCode[obj.test_count]
