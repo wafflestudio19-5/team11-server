@@ -180,6 +180,8 @@ class CustomLecturePutSerializer(serializers.ModelSerializer):
         
     def update(self, instance, validated_data):
         if "time_location" in validated_data:
+            if instance.lecture:
+                raise CustomException("시공간 정보를 바꿀 수 없는 강의입니다. ", status.HTTP_400_BAD_REQUEST)
             time_location = validated_data.pop('time_location')
             validated_data['time'] = validated_data['location'] = ""
 
@@ -204,7 +206,6 @@ class CustomLecturePutSerializer(serializers.ModelSerializer):
                 else:
                     validated_data['nickname'] = instance.lecture.subject_professor.subject_name
         
-        print(validated_data)
         result = super().update(instance, validated_data)
         instance.save()
         return result
