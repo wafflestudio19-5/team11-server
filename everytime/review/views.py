@@ -43,6 +43,10 @@ class ReviewViewSet(viewsets.GenericViewSet):
                             data={"error": "wrong_board_id", "detail": "SubjectProfessor가 존재하지 않습니다."})
 
         reviews = self.get_queryset().filter(subject_professor=subject_professor)
+        serializer = ReviewViewSerializer(reviews, many=True)
+
+        return Response(status=status.HTTP_200_OK, data={"reviews" : serializer.data})
+
         page = self.paginate_queryset(reviews)
         if page is not None:
             serializer = ReviewViewSerializer(page, many=True)
