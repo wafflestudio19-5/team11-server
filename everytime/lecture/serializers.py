@@ -3,6 +3,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
+from customlecture.models import CustomLecture
+
 from .models import Lecture, SubjectProfessor
 from university.models import University
 from department.models import *
@@ -14,7 +16,7 @@ from statistics import mode, mean
 class SubjectProfessorSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     subject_name = serializers.CharField()
-    professor = serializers.CharField(allow_null=True)
+    professor = serializers.CharField(allow_blank=True)
     review = serializers.SerializerMethodField()
     semester = serializers.SerializerMethodField()
 
@@ -64,7 +66,7 @@ class SubjectProfessorSerializer(serializers.ModelSerializer):
 
 class LectureSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField()
-    professor = serializers.CharField(allow_null=True)
+    professor = serializers.CharField(allow_blank=True)
     subject_code = serializers.CharField()
     ####
     year = serializers.IntegerField()
@@ -78,18 +80,20 @@ class LectureSerializer(serializers.ModelSerializer):
     credit = serializers.IntegerField()
     category = serializers.IntegerField()
     number = serializers.IntegerField()
+    quota = serializers.CharField()
     detail = serializers.CharField(allow_null=True)
     language = serializers.CharField()
+    method = serializers.CharField(allow_blank=True)
     ####
-    time = serializers.CharField(allow_null=True)
-    location = serializers.CharField(allow_null=True)
+    time = serializers.CharField(allow_blank=True)
+    location = serializers.CharField(allow_blank=True)
 
     class Meta:
         model = Lecture
         fields = ('subject_name', 'subject_code', 'professor',
                   'year', 'season', 'college', 'department', 'grade', 'level', 'credit',
                   'category', 'number', 'detail', 'language',
-                  'time', 'location', 'university')
+                  'time', 'location', 'university', 'method', 'quota')
 
     def validate(self, data):
         university = University.objects.get_or_none(name = data['university'])
@@ -135,6 +139,11 @@ class LectureSerializer(serializers.ModelSerializer):
         validated_data.pop('subject_name')
         validated_data.pop('professor')
 
+        if '(' in validated_data['quota']:
+            validated_data['quota'] = int(validated_data['quota'].split('(')[0])
+        else:
+            validated_data['quota'] = int(validated_data['quota'])
+
         lecture = Lecture.objects.create(**validated_data)
         return lecture
 
@@ -156,6 +165,9 @@ class LectureViewSerializer(LectureSerializer):
     category = serializers.SerializerMethodField()
     department = serializers.SerializerMethodField()
     college = serializers.SerializerMethodField()
+    quota = serializers.IntegerField()
+    people = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
     ####
 
     class Meta:
@@ -197,6 +209,12 @@ class LectureViewSerializer(LectureSerializer):
                 score += review.rating
             score /= len(reviews)
             return score
+
+    def get_people(self, obj):
+        return len(CustomLecture.objects.filter(lecture=obj).values('schedule__user').distinct())
+
+    def get_url(self, obj):
+        return "https://sugang.snu.ac.kr/sugang/cc/cc103.action?openSchyy=" + str(obj.year) + "&openShtmFg=U00020000" + str(obj.season) + "&openDetaShtmFg=U000300001&sbjtCd=" + obj.subject_code + "&ltNo=" + str(obj.number).zfill(3) + "&sbjtSubhCd=000"
 
 class LectureViewSerializer_Mini(LectureViewSerializer):
     class Meta:

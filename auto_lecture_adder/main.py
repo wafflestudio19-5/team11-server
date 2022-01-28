@@ -26,6 +26,8 @@ def f(filename, year, season):
             data['season'] = season #int
             data['college'] = dict_line['개설대학']
             data['department'] = dict_line['개설학과']
+            data['method'] = dict_line['수업형태']
+            data['quota'] = dict_line['정원']
 
             data['grade'] = 0
             for i in range(10):

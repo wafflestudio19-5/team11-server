@@ -5,7 +5,7 @@ from common.models import BaseModel
 from django.core.validators import MaxValueValidator, MinValueValidator
 class SubjectProfessor(BaseModel):
     subject_name = models.CharField(max_length=100, null = False)
-    professor = models.CharField(max_length=100, null=True)
+    professor = models.CharField(max_length=100, blank=True)
 
 class Lecture(BaseModel):
 
@@ -24,6 +24,8 @@ class Lecture(BaseModel):
     year = models.IntegerField()
     season = models.IntegerField()
     ######
+    method = models.CharField(max_length=50, blank=True, default='')
+    quota = models.IntegerField(default=0)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='department_lecture', null=True)
     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='college_lecture', null=True)
     grade = models.IntegerField()
