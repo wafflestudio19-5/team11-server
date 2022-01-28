@@ -51,7 +51,26 @@ class ReviewViewSet(viewsets.GenericViewSet):
         queryset = Review.objects.all()
         return queryset
 
+class ReviewAllViewSet(viewsets.GenericViewSet):
+    serializer_class = ReviewCreateSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    # GET /subject_professor/all/review/
+    def list(self, request):
+
+        reviews = list(self.get_queryset().all())
+        reviews.reverse()
+
+        page = self.paginate_queryset(reviews)
+
+        if page is not None:
+            serializer = ReviewViewSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
 
 
-
+    def get_queryset(self):
+        queryset = Review.objects.all()
+        return queryset
 
