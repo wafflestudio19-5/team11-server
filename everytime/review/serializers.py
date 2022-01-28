@@ -8,6 +8,7 @@ from comment.models import Comment
 from .models import *
 from lecture.models import *
 from comment.serializers import CommentSerializer
+from lecture.serializers import SubjectProfessorSerializer
 
 from common.custom_exception import CustomException
 
@@ -52,6 +53,8 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
 class ReviewViewSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     subject_professor_id = serializers.SerializerMethodField()
+    subject_name = serializers.SerializerMethodField()
+    professor = serializers.SerializerMethodField()
     year = serializers.IntegerField()
     season = serializers.SerializerMethodField()
     homework = serializers.SerializerMethodField()
@@ -66,6 +69,15 @@ class ReviewViewSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
 
+    def get_subject_name(self, obj):
+        subject_professor = obj.subject_professor
+        data = SubjectProfessorSerializer(subject_professor).data
+        return data['subject_name']
+
+    def get_professor(self, obj):
+        subject_professor = obj.subject_professor
+        data = SubjectProfessorSerializer(subject_professor).data
+        return data['professor']
 
     def get_subject_professor_id(self, obj):
         return obj.subject_professor.id
