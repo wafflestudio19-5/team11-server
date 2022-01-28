@@ -221,11 +221,16 @@ class CustomLectureViewSerializer(serializers.ModelSerializer):
     location = serializers.CharField()
     memo = serializers.CharField()
     time_location = serializers.SerializerMethodField()
+    subject_lecture = serializers.SerializerMethodField()
 
     class Meta:
         model = Schedule
-        fields = ('id', 'lecture', 'nickname', 'professor', 'time', 'location', 'memo', 'time_location')
+        fields = ('id', 'subject_lecture', 'lecture', 'nickname', 'professor', 'time', 'location', 'memo', 'time_location')
 
+    def get_subject_lecture(self, obj):
+        if not obj.lecture:
+            return None
+        return obj.lecture.subject_professor.id
 
     def get_lecture(self, obj):
         if not obj.lecture:
