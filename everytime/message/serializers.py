@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils import timezone
+from datetime import datetime
 
 from rest_framework import serializers, status
 
@@ -147,9 +148,12 @@ class MessageSerializer(serializers.ModelSerializer):
         validated_data['sender'] = sender
         validated_data['receiver'] = message_room.other_user(sender)
         other_user_unread = message_room.str_other_user_unread(sender)
-        unread_count = message_room.other_user_unread(sender)+1
+        unread_count = message_room.other_user_unread(sender) + 1
         setattr(message_room, other_user_unread, unread_count)
+
+        message_room.last_message_at = datetime.now()
         message_room.save()
+
         return super().create(validated_data)
         
     def get_created_at(self, obj):

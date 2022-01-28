@@ -83,7 +83,3 @@ class Message(models.Model):
     receiver_active = models.BooleanField(default=True)
     text = models.CharField(max_length=128, null = False)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def save(self, *args, **kwargs):
-        super(Message, self).save(*args, **kwargs)
-        self.message_room.save()
