@@ -201,14 +201,10 @@ class LectureViewSerializer(LectureSerializer):
 
     def get_rate(self, obj):
         reviews = Review.objects.filter(subject_professor=obj.subject_professor)
-        if len(reviews) == 0:
+        if not reviews:
             return 0
         else:
-            score = 0
-            for review in reviews:
-                score += review.rating
-            score /= len(reviews)
-            return score
+            return mean([review.rating for review in reviews])
 
     def get_people(self, obj):
         return len(CustomLecture.objects.filter(lecture=obj).values('schedule__user').distinct())
