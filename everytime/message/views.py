@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.db.models import Q
+from datetime import datetime
 
 from rest_framework import serializers, status, viewsets, permissions
 from rest_framework.decorators import action, permission_classes
@@ -55,6 +56,8 @@ class MessageRoomViewSet(viewsets.GenericViewSet):
         serializer = MessageSerializer(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        message_room.last_message_at = datetime.now()
+        message_room.save()
 
         message = serializer.instance
         try:

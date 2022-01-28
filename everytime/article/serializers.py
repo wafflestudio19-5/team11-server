@@ -201,8 +201,11 @@ class UserArticleSerializer(serializers.ModelSerializer):
                 return {'subscribe' : True}
             return {}
         else:
-            if action == 'article_like' and self.instance.like == True:
-                raise CustomException("이미 공감한 글입니다.", status.HTTP_400_BAD_REQUEST)
+            if action == 'article_like':
+                if self.instance.like == True:
+                    raise CustomException("이미 공감한 글입니다.", status.HTTP_400_BAD_REQUEST)
+                else:
+                    return {'like' : True}
             elif action == 'article_scrap':
                 return {'scrap' : not self.instance.scrap} # scrap과 unscrap 구현
             elif action == 'article_subscribe':
