@@ -62,7 +62,7 @@ class UserLoginView(APIView):
             except Exception as v:
                 print(v)
                 logger.debug(v)
-                return Response({'error': "field_error", 'detail': "이메일 또는 비밀번호가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': "field_error", 'detail': "아이디 또는 비밀번호가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'success': True, 'token': token}, status=status.HTTP_200_OK)
 

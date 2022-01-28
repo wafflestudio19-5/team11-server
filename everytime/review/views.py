@@ -47,13 +47,6 @@ class ReviewViewSet(viewsets.GenericViewSet):
 
         return Response(status=status.HTTP_200_OK, data={"reviews" : serializer.data})
 
-        page = self.paginate_queryset(reviews)
-        if page is not None:
-            serializer = ReviewViewSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
-
     def get_queryset(self):
         queryset = Review.objects.all()
         return queryset
