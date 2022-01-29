@@ -210,7 +210,15 @@ class LectureViewSerializer(LectureSerializer):
         return len(CustomLecture.objects.filter(lecture=obj).values('schedule__user').distinct())
 
     def get_url(self, obj):
-        return "https://sugang.snu.ac.kr/sugang/cc/cc103.action?openSchyy=" + str(obj.year) + "&openShtmFg=U00020000" + str(obj.season) + "&openDetaShtmFg=U000300001&sbjtCd=" + obj.subject_code + "&ltNo=" + str(obj.number).zfill(3) + "&sbjtSubhCd=000"
+        return ("https://sugang.snu.ac.kr/sugang/cc/cc103.action?openSchyy="
+                + str(obj.year)
+                + "&openShtmFg=U00020000"
+                + str(obj.season)
+                + "&openDetaShtmFg=U000300001&sbjtCd=" 
+                + obj.subject_code + "&ltNo="
+                + str(obj.number).zfill(3)
+                + "&sbjtSubhCd=000"
+                )
 
 class LectureViewSerializer_Mini(LectureViewSerializer):
     class Meta:
