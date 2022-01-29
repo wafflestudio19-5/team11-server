@@ -12,6 +12,7 @@ router.register(r'board/(?P<board_id>[-\w]+)/article', ArticleViewSet_My_All, ba
 router.register(r'like/article/(?P<article_id>\d+)', UserArticleLikeView, basename='article_like')
 router.register(r'scrap/article/(?P<article_id>\d+)', UserArticleScrapView, basename='article_scrap')
 router.register(r'subscribe/article/(?P<article_id>\d+)', UserArticleSubscribeView, basename='article_subscribe')
+router.register(r'article', ArticleWholeViewSet, basename='article_whole')
 
 urlpatterns = [
     path('', include(router.urls))

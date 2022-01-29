@@ -20,6 +20,58 @@ import logging
 logger = logging.getLogger('django')
 
 # Create your views here.
+
+class ArticleWholeViewSet(viewsets.GenericViewSet):
+    serializer_class = ArticleCreateSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def list(self, request):
+        queryset = self.get_queryset().order_by('-id')
+
+        # # 검색 기능
+        # search = self.request.query_params.get('search', None)
+        # queryset = self.get_queryset_search(search, queryset)
+
+        # # Hot 게시물, Best 게시물
+        # interest = self.request.query_params.get('interest', None)
+        # queryset = self.get_queryset_interest(interest, queryset)
+
+        search = request.query_params.get('search', None)
+
+        if not search or search == "":
+            return Response(status=status.HTTP_400_BAD_REQUEST, data="put search keyword")
+
+        # 검색 기능
+        if search:
+            queryset = self.get_queryset_search(search, queryset)
+        
+        return self.paginate(request, queryset)
+
+    def paginate(self, request, queryset):
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = ArticleSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data) 
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
+    
+    def get_queryset(self):
+        queryset = Article.objects.all()
+        return queryset
+
+    def get_queryset_search(self, search, queryset):
+        if search == "":
+            return []
+        if search:
+            q = Q()
+            #return queryset.filter(q)
+            keywords = set(search.split(' '))
+            for k in keywords:
+               q &= Q(title__icontains=k)|Q(text__icontains=k)
+            queryset = queryset.filter(q)
+        return queryset.distinct()
+   
 class ArticleViewSet(viewsets.GenericViewSet):
     serializer_class = ArticleCreateSerializer
     permission_classes = (permissions.IsAuthenticated,)
