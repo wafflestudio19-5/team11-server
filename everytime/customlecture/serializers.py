@@ -222,15 +222,30 @@ class CustomLectureViewSerializer(serializers.ModelSerializer):
     memo = serializers.CharField()
     time_location = serializers.SerializerMethodField()
     subject_professor = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
 
     class Meta:
         model = Schedule
-        fields = ('id', 'subject_professor', 'lecture', 'nickname', 'professor', 'time', 'location', 'memo', 'time_location')
+        fields = ('id', 'subject_professor', 'lecture', 'nickname', 'professor', 'time', 'location', 'memo', 'time_location', 'url')
 
     def get_subject_professor(self, obj):
         if not obj.lecture:
-            return None
+            return 0
         return obj.lecture.subject_professor.id
+
+    def get_url(self, obj):
+        if not obj.lecture:
+            return ""
+        return ("https://sugang.snu.ac.kr/sugang/cc/cc103.action?openSchyy="
+                + str(obj.lecture.year)
+                + "&openShtmFg=U00020000"
+                + str(obj.lecture.season)
+                + "&openDetaShtmFg=U000300001&sbjtCd=" 
+                + obj.lecture.subject_code + "&ltNo="
+                + str(obj.lecture.number).zfill(3)
+                + "&sbjtSubhCd=000"
+                )
+
 
     def get_lecture(self, obj):
         if not obj.lecture:
