@@ -22,6 +22,9 @@ class Board(BaseModel):
     type = models.PositiveSmallIntegerField(choices=BoardType.choices, default=BoardType.GEN)
     description = models.CharField(max_length=100, default="")
     allow_anonymous = models.BooleanField(null=False, default=True)
+
+    def __str__(self):
+        return self.name
     
 class UserBoard(BaseModel):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='user_board', null=True)

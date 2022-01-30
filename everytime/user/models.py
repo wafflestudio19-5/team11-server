@@ -47,7 +47,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     university = models.ForeignKey(University, on_delete=models.CASCADE)
-
     nickname = models.CharField(max_length=30, blank=False, unique = True)
     user_id = models.CharField(max_length=30, blank=False, unique=True, null=True)
     email = models.EmailField(max_length=100, unique=True, db_index=True)
@@ -58,6 +57,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_login = models.DateTimeField(default=timezone.now)
     name = models.CharField(max_length=30, blank = False)
     profile_image = models.ImageField(upload_to = upload_image, editable = True, null = True)
+    fcm_token = models.CharField(max_length=255, null=True)
+    notification_unread = models.PositiveIntegerField(default=0)
 
     # 해당 필드에 대한 설명은 부모 AbstractBaseUser 클래스 참고
     EMAIL_FIELD = 'email'
@@ -68,3 +69,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.email
+
+class UserNotification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_notification', null = False)
+    board_id = models.IntegerField(null=True)
+    board_name = models.CharField(max_length=100, null = False)
+    article_id = models.IntegerField(null=True)
+    text = models.CharField(max_length=128, blank = False)
+    unread = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)

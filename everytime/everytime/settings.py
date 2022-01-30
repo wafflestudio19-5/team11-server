@@ -18,7 +18,7 @@ from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials
 try:
-    cred = credentials.Certificate("everytime/toyproject-ad13a-firebase-adminsdk-70acc-937886288c.json")
+    cred = credentials.Certificate("everytime/secret_firebase.json")
     firebase_admin.initialize_app(cred)
 except FileNotFoundError:
     pass
@@ -80,10 +80,17 @@ INSTALLED_APPS = [
     'university.apps.UniversityConfig',
     'department.apps.DepartmentConfig',
     'user.apps.UserConfig',
+    'lecture.apps.LectureConfig',
+    'review.apps.ReviewConfig',
+    'information.apps.InformationConfig',
+    'schedule.apps.ScheduleConfig',
+    'customlecture.apps.CustomlectureConfig',
 
     'board.apps.BoardConfig',
     'article.apps.ArticleConfig',
     'comment.apps.CommentConfig',
+
+    'message.apps.MessageConfig',
 
     'django.contrib.sites',
     'rest_framework',
@@ -281,5 +288,12 @@ if "TEAM11_SERVER_ENV" in os.environ :
                 'level': 'DEBUG',
                 'propagate': True,
             },
+            'django.template': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
         },
     }
+
+SESSION_COOKIE_DOMAIN = '.wafl.shop'

@@ -50,27 +50,32 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        images = self.context.get('view').request.FILES
+
+        image_list = self.context.get('view').request.FILES
         validated_data['writer'] = self.context['request'].user
         board_id = validated_data['board']
         
         validated_data['board'] = Board.objects.get(id = board_id)
 
         with transaction.atomic():
-            article = Article.objects.create(**validated_data)
             if 'texts' in validated_data:
                 texts = validated_data.pop('texts')
-                i = 0
-                for image in images.values():
-                    ImageArticle.objects.create(article = article, image = image, description = texts[i]["text"])
-                    i += 1
+            article = Article.objects.create(**validated_data)
+            i = 0
+            # https://donis-note.medium.com/django-rest-framework-%EB%8B%A4%EC%A4%91-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EC%97%85%EB%A1%9C%EB%93%9C-%EB%B0%A9%EB%B2%95-38c99d26258
+            # https://www.postman.com/postman/workspace/postman-answers/request/9215231-82d960a6-ece0-42ee-88d4-eef19805860d
+            for image_data in image_list.getlist('image'):
+                ImageArticle.objects.create(article = article, image = image_data, description = texts[i])
+                i += 1
             return article
 
 class ArticleSerializer(serializers.ModelSerializer):
     board_id = serializers.IntegerField() #전체 게시글 열람 기능을 위함
+    board_name = serializers.SerializerMethodField()
     title = serializers.CharField()
     text = serializers.CharField()
     user_nickname = serializers.SerializerMethodField()
+    user_image = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     scrap_count = serializers.SerializerMethodField()
@@ -80,30 +85,53 @@ class ArticleSerializer(serializers.ModelSerializer):
     f_created_at = serializers.SerializerMethodField()
     has_scraped = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
+    has_subscribed = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
+    is_question = serializers.BooleanField()
 
     class Meta:
         model = Article
         fields = (
             'id',
             'board_id',
+            'board_name',
             'title', 
             'text', 
             'user_nickname', 
+            'user_image',
             'is_mine',
+            "is_question",
             'like_count', 
             'scrap_count',
             'comment_count', 
             'image_count',
             'created_at', 
             'f_created_at',
-            "has_scraped",
-            "has_liked",
+            'has_scraped',
+            'has_liked',
+            'has_subscribed',
+            'images',
         )
-    def board_id(self, obj):
-        return obj.board.id
+
+    def get_board_name(self, obj):
+        return obj.board.name
 
     def get_user_nickname(self, obj):
-        return obj.writer.nickname
+        if obj.writer == None or obj.writer.is_active == False:
+            return '(알수없음)'
+        if obj.is_anonymous == True:
+            return '익명'
+        else:
+            return obj.writer.nickname
+    
+    def get_user_image(self, obj):
+        if obj.writer != None and obj.writer.is_active == True:
+            if obj.is_anonymous == False and obj.writer.profile_image:
+                return obj.writer.profile_image.url
+            else:
+                 return ""
+        else:
+            return ""
 
     def get_is_mine(self, obj):
         return obj.writer == self.context['request'].user
@@ -118,7 +146,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         return Comment.objects.filter(article = obj).count()
 
     def get_image_count(self, obj):
-        return 0
+        return ImageArticle.objects.filter(article = obj).count()
 
     def get_created_at(self, obj):
         return timezone.localtime(obj.created_at).strftime("%m/%d %H:%M")
@@ -135,6 +163,12 @@ class ArticleSerializer(serializers.ModelSerializer):
     def get_has_liked(self, obj):
         return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, like=True, article=obj))
 
+    def get_has_subscribed(self, obj):
+        return bool(UserArticle.objects.get_or_none(user=self.context['request'].user, subscribe=True, article=obj))
+
+    def get_images(self, obj):
+        images = ImageArticle.objects.filter(article = obj)
+        return ImageArticleSerializer(images, many = True).data
 
 class ArticleWithCommentSerializer(ArticleSerializer):
     comments = serializers.SerializerMethodField()
@@ -144,16 +178,17 @@ class ArticleWithCommentSerializer(ArticleSerializer):
                 + ('comments',)
 
     def get_comments(self, article):
-        comments = Comment.objects.filter(article=article).order_by('parent')
+        comments = Comment.objects.filter(article=article).order_by('parent', 'id')
         return CommentSerializer(comments, context=self.context, many=True).data
 
 class UserArticleSerializer(serializers.ModelSerializer):
     like = serializers.BooleanField(required=False)
     scrap = serializers.BooleanField(required=False)
+    subscribe = serializers.BooleanField(required=False)
 
     class Meta:
         model = UserArticle
-        fields = ('id', 'like', 'scrap',)
+        fields = ('id', 'like', 'scrap', 'subscribe',)
 
     def validate(self, data):
         action = self.context['view'].basename 
@@ -162,12 +197,19 @@ class UserArticleSerializer(serializers.ModelSerializer):
                 return {'like' : True}
             elif action == 'article_scrap':
                 return {'scrap' : True}
+            elif action == 'article_subscribe':
+                return {'subscribe' : True}
             return {}
         else:
-            if action == 'article_like' and self.instance.like == True:
-                raise CustomException("이미 공감한 글입니다.", status.HTTP_400_BAD_REQUEST)
+            if action == 'article_like':
+                if self.instance.like == True:
+                    raise CustomException("이미 공감한 글입니다.", status.HTTP_400_BAD_REQUEST)
+                else:
+                    return {'like' : True}
             elif action == 'article_scrap':
                 return {'scrap' : not self.instance.scrap} # scrap과 unscrap 구현
+            elif action == 'article_subscribe':
+                return {'subscribe' : not self.instance.subscribe}
             return {}
 
     def create(self, validated_data):
@@ -176,3 +218,8 @@ class UserArticleSerializer(serializers.ModelSerializer):
         validated_data['user'] = self.context['request'].user
         user_article = UserArticle.objects.create(**validated_data)
         return user_article
+
+class ImageArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImageArticle
+        fields = ('image', 'description')

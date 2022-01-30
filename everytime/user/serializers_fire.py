@@ -46,7 +46,7 @@ class FireBaseUserCreateSerializer(serializers.Serializer):
         try:
             decoded_token = auth.verify_id_token(access_token)
             uid = decoded_token['uid']
-        except ...:
+        except:
             raise serializers.ValidationError
 
         if SocialAccount.objects.filter(uid=uid, provider="fire"):
@@ -79,7 +79,7 @@ class FireBaseUserLoginSerializer(serializers.Serializer):
         try:
             decoded_token = auth.verify_id_token(access_token)
             uid = decoded_token['uid']
-        except Exception:
+        except:
             raise serializers.ValidationError("FireBase 계정이 존재하지 않습니다")
 
         if not SocialAccount.objects.filter(uid=uid, provider="fire"):

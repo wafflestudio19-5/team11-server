@@ -13,8 +13,11 @@ router1 = SimpleRouter()
 router1.register('my/email', UserUpdateEmailView, basename='my_email')
 router1.register('my/nickname', UserUpdateNicknameView, basename='my_nickname')
 router1.register('my/password', UserUpdatePasswordView, basename = 'my_password')
+router1.register('my/profile_image', UserUpdateProfileImageView, basename = 'my_profileimage')
 router1.register('my', UserViewSet, basename = 'my')
-router1.register('my/withdrawal', UserDeleteViewset, basename = 'my_withdrawal')
+router1.register('my/withdrawal', UserDeleteViewSet, basename = 'my_withdrawal')
+router1.register('notification', UserNotificationViewSet, basename='notification'),  # /api/v1/notification/
+
 
 urlpatterns = [
     path('register/', UserSignUpView.as_view(), name='signup'),  # /api/v1/signup/
@@ -31,4 +34,6 @@ urlpatterns = [
 
     path('register/fire/', FireBaseUserSignUpView.as_view(), name='firesignup'),
     path('login/fire/', FireBaseUserLoginView.as_view(), name='firelogin'),
+
+    path('fcm_token/', UserFCMTokenView.as_view(), name='fcm_token'),  # /api/v1/fcm_token/
 ]

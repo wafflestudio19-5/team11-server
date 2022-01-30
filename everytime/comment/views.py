@@ -2,17 +2,24 @@ from re import U
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.db.models import Q
+from django.db import transaction
 
 from rest_framework import serializers, status, viewsets, permissions
 from rest_framework.decorators import action, parser_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from user.models import User
 from board.models import Board
-from article.models import Article
+from article.models import Article, UserArticle
 from comment.models import Comment, UserComment
 
 from .serializers import CommentCreateSerializer, CommentSerializer, UserCommentSerializer
+
+from common.fcm_notification import send_push, create_notification
+
+import logging
+logger = logging.getLogger('django')
 
 class CommentViewSet(viewsets.GenericViewSet):
     serializer_class = CommentCreateSerializer
@@ -34,6 +41,53 @@ class CommentViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
 
+        if comment.is_subcomment == True:
+            # parent 댓글 구독한 사람에게 알림 전송 / 알림 log 기록
+            try:
+                uc = UserComment.objects.filter(comment=comment.parent).exclude(user=request.user)
+                users = User.objects.filter(user_comment__in=uc)
+                for user in users:
+                    create_notification("new_subcomment", comment, user)
+
+                uc = uc.filter(subscribe=True)
+                fcm_tokens = users.filter(fcm_token__isnull=False).values("fcm_token")
+                for fcm_token in fcm_tokens:
+                    logger.debug(fcm_token)
+                    send_push("new_subcomment", comment, fcm_token['fcm_token'])
+
+            except Exception as e:
+                logger.debug(e)
+            
+        else:
+            user_comment = UserComment.objects.create(comment=comment, user=request.user, subscribe=True)
+            # 게시글 구독한 사람에게 알림 전송 / 알림 log 기록
+            try:
+                ua = UserArticle.objects.filter(article=article_id).exclude(user=request.user)
+                users = User.objects.filter(user_article__in=ua)
+                for user in users:
+                    create_notification("new_comment", comment, user)
+
+                ua = ua.filter(subscribe=True)
+                fcm_tokens = users.filter(fcm_token__isnull=False).values("fcm_token")
+                for fcm_token in fcm_tokens:
+                    logger.debug(fcm_token)
+                    send_push("new_comment", comment, fcm_token['fcm_token'])
+                    
+            except Exception as e:
+                logger.debug(e)
+        
+        user_article = UserArticle.objects.get_or_none(article_id=article_id, user=request.user)
+        if user_article == None:
+            user_article = UserArticle.objects.create(article_id=article_id, user=request.user)
+        if comment.is_anonymous ==True and user_article.nickname_code == None:
+            last_nickname_code = UserArticle.objects.filter(article=article_id).order_by("nickname_code").last().nickname_code
+            if bool(last_nickname_code) == False:
+                nickname_code = 1
+            else:
+                nickname_code = last_nickname_code + 1
+            user_article.nickname_code = nickname_code
+            user_article.save()
+
         return Response(status=status.HTTP_200_OK, data={"success" : True, "comment_id" : comment.id})
 
     #DELETE /board/{board_id}/article/{article_id}/comment/{comment_id}
@@ -47,29 +101,32 @@ class CommentViewSet(viewsets.GenericViewSet):
         if comment.article != article:
             return Response(status=status.HTTP_404_NOT_FOUND, data={ "error":"wrong_match", "detail" : "해당 게시글의 댓글이 아닙니다."})
 
-        #serializer = CommentSerializer(comment) 
-        # 1. 원댓글 with no 대댓글
-        # 바로 삭제
-        #has_subcomments = lambda c: Comment.objects.filter(Q(parent=c)&~Q(id=c.id)).exists()
-        has_subcomments = Comment.objects.filter(Q(parent=comment)&~Q(id=comment.id)).exists()
-        #  # 1. 대댓글 - 바로삭제
-        # if comment.is_subcomment:
-        #     print("대댓글")
-        #     # 원댓글이 삭제 상태일 시, 
-        #     #if comment.parent.is_active == False and : 
-
-        # # 2. 원댓글 with no 대댓글 - 바로 삭제
-        # elif has_subcomments:
-        #     print("원댓글 with no 대댓글")
-        # # 3. 원댓글 with 대댓글 - writer=NULL text->삭제된 댓글입니다.
-        # elif not has_subcomments:
-        #     print("원댓글 with 대댓글")
-
+        has_subcomments = lambda c: Comment.objects.filter(Q(parent=c)&~Q(id=c.id)).exists()
+        #has_subcomments = Comment.objects.filter(Q(parent=comment)&~Q(id=comment.id)).exists()
         
-        # text = 삭제된 댓글입니다.
+        with transaction.atomic():
+            # 1. 대댓글 - 바로삭제
+            if comment.is_subcomment:
+                print("대댓글")
+                parent = comment.parent
+                comment.delete()
+                # 원댓글이 "삭제 상태 & subcomment가 없음" -> 삭제
+                if parent.is_active == False and not has_subcomments(parent) :
+                    parent.delete()
 
-        # 3. 대댓글 
-        # 바로 삭제
+            # 2. 원댓글 with no 대댓글 - 바로 삭제
+            elif not has_subcomments(comment):
+                print("원댓글 with no 대댓글")
+                comment.delete()
+
+            # 3. 원댓글 with 대댓글 - is_active=False, writer=NULL, text->삭제된 댓글입니다.
+            elif has_subcomments(comment):
+                print("원댓글 with 대댓글")
+                comment.is_active = False
+                comment.commenter = None
+                comment.text = "삭제된 댓글입니다."
+                comment.save()
+
 
         return Response(status=status.HTTP_200_OK, data={"success" : True})
     
@@ -81,9 +138,8 @@ class CommentViewSet(viewsets.GenericViewSet):
         
         return Response(status=status.HTTP_200_OK, data={"comments" : CommentSerializer(comments, context = {'request' : request}, many=True).data})
 
-class UserCommentLikeView(viewsets.GenericViewSet):
+class UserCommentView(viewsets.GenericViewSet):
     serializer_class = UserCommentSerializer
-    permission_classes = (permissions.AllowAny,)
 
     def create(self, request, comment_id):
         comment = Comment.objects.get_or_none(id=comment_id)
@@ -102,9 +158,22 @@ class UserCommentLikeView(viewsets.GenericViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.update(user_comment, serializer.validated_data)
 
+        return self.get_response(comment, user_comment)
+
+class UserCommentLikeView(UserCommentView):
+    def get_response(self, comment, user_comment):
         return Response(status=status.HTTP_200_OK,
                         data={
                             "like": UserComment.objects.filter(comment = comment, like = True).count(),
-                            "detail": "이 글을 공감하였습니다."
+                            "detail": "이 댓글을 공감하였습니다."
+                            }
+                        )
+
+class UserCommentSubscribeView(UserCommentView):
+    def get_response(self, comment, user_comment):
+        return Response(status=status.HTTP_200_OK,
+                        data={
+                            "subscribe": user_comment.subscribe,
+                            "detail": "대댓글 알림을 켰습니다." if user_comment.subscribe else "대댓글 알림을 껐습니다."
                             }
                         )

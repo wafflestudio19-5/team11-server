@@ -1,16 +1,21 @@
 from rest_framework import serializers, status, viewsets, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import action
+
 from django.contrib.auth import authenticate
 from django.db import IntegrityError
-from user.serializers import UserCreateSerializer, UserLoginSerializer
-from user.models import User
+from user.serializers import UserCreateSerializer, UserLoginSerializer, UserNotificationSerializer
+from user.models import User, UserNotification
 from django.contrib.auth.models import update_last_login
 from django.http.response import Http404
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
 from rest_framework_jwt.views import VerifyJSONWebTokenSerializer
+
+from common.fcm_notification import send_push
+from article.views import ArticleViewSet
 
 import logging
 logger = logging.getLogger('django')
@@ -57,7 +62,7 @@ class UserLoginView(APIView):
             except Exception as v:
                 print(v)
                 logger.debug(v)
-                return Response({'error': "field_error", 'detail': "이메일 또는 비밀번호가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': "field_error", 'detail': "아이디 또는 비밀번호가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'success': True, 'token': token}, status=status.HTTP_200_OK)
 
@@ -66,18 +71,27 @@ class UserViewSet(viewsets.GenericViewSet):
 
     def list(self, request, pk=None):
         user = request.user
-        return Response(
-            {
-                "user_id" : user.user_id,
-                "name" : user.name,
-                "email" : user.email,
-                "admission_year" : user.admission_year,
-                "nickname" : user.nickname,
-                "university" : user.university.name
-            }
-            ,status=status.HTTP_200_OK)
+        
+        try:
+            fcm_token = user.fcm_token
+            send_push("test", user, fcm_token)
+        except Exception as e:
+            logger.debug(e)
 
-class UserDeleteViewset(viewsets.GenericViewSet):
+        serializer = UserCreateSerializer(user, context={'request': request})
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+        # return Response(
+        #     {
+        #         "user_id" : user.user_id,
+        #         "name" : user.name,
+        #         "email" : user.email,
+        #         "admission_year" : user.admission_year,
+        #         "nickname" : user.nickname,
+        #         "university" : user.university.name
+        #     }
+        #     ,status=status.HTTP_200_OK)
+
+class UserDeleteViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated, )
     serializer_class = UserCreateSerializer
 
@@ -199,5 +213,74 @@ class UserUpdatePasswordView(viewsets.GenericViewSet):
         return Response({"success" : True}, status = status.HTTP_200_OK)
 
     def list(self, request, pk=None):
-        password = request.data.get('password')
-        return Response({"detail" : password}, status = status.HTTP_200_OK)
+        return Response({"detail" : "password"}, status = status.HTTP_200_OK)
+
+class UserUpdateProfileImageView(viewsets.GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated, )
+    serializer_class = UserCreateSerializer
+    def put(self, request, pk = None):
+        user = request.user
+        data = request.data.copy()
+        if data.get('profile_image') == None:
+            return Response({"error" : "프로필 이미지를 첨부하세요."}, status = status.HTTP_404_NOT_FOUND)
+        
+        serializer = self.get_serializer(user, data=data, partial = True)
+        try:
+            serializer.is_valid(raise_exception = True)
+            serializer.update(user, serializer.validated_data)
+        except:
+            return Response({"success" : False, "detail" : "이미지 업로드 과정에서 오류가 발생했습니다."}, status= status.HTTP_400_BAD_REQUEST)
+        return Response({"success" : True}, status = status.HTTP_200_OK)
+
+    def list(self, request, pk=None):
+        return Response({"detail" : "profile_image"}, status = status.HTTP_200_OK)
+
+class UserFCMTokenView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def post(self, request):
+        user = request.user
+        data = request.data.copy()
+        if (fcm_token:=data.get('fcm_token')) == None:
+            return Response({"error" : "fcm_token missing"}, status = status.HTTP_400_BAD_REQUEST)
+        
+        User.objects.filter(fcm_token=fcm_token).update(fcm_token=None)
+        user.fcm_token = fcm_token
+        user.save()
+
+        return Response({"success" : True}, status = status.HTTP_200_OK)
+
+class UserNotificationViewSet(viewsets.GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated, )
+    queryset = UserNotification.objects.all()
+
+    #GET /notification/
+    def list(self, request, pk=None):
+        user = request.user
+        user.notification_unread = 0
+        user.save()
+        
+        queryset = self.queryset.filter(user=request.user).order_by('-id')
+        return self.paginate(request, queryset)
+
+    #GET /notification/{pk}/
+    def retrieve(self, request, pk):
+        if not (notification := UserNotification.objects.get(id=pk)):
+            return Response(status=status.HTTP_404_NOT_FOUND, data={ "detail":"wrong_notification_id"})
+        notification.unread = False
+        notification.save()
+        return Response(status=status.HTTP_200_OK, data={'success': True})
+
+    #GET /notification/unread/
+    @action(methods=['get'], detail=False)
+    def unread(self, request):
+        return Response(status=status.HTTP_200_OK, data={'unread_count': request.user.notification_unread})
+
+    def paginate(self, request, queryset):
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = UserNotificationSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data) 
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data="pagination fault")
